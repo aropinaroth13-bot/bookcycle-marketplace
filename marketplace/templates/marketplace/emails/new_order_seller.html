@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .content {
+            background: #ffffff;
+            padding: 30px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .footer {
+            background: #f5f5f5;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .button {
+            display: inline-block;
+            background: #f59e0b;
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+
+        .order-details {
+            background: #fef3c7;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎉 New Order Received!</h1>
+        </div>
+        <div class="content">
+            <p>Hi {{ seller.get_full_name|default:seller.username }},</p>
+
+            <p>Great news! You've received a new order for your book.</p>
+
+            <div class="order-details">
+                <h3>Order Details</h3>
+                <p><strong>Order Number:</strong> #{{ order.id }}</p>
+                <p><strong>Book:</strong> {{ order.book.title }}</p>
+                <p><strong>Buyer:</strong> {{ order.buyer.username }}</p>
+                <p><strong>Quantity:</strong> {{ order.quantity }}</p>
+                <p><strong>Total:</strong> ₹{{ order.total_price }}</p>
+                <p><strong>Order Date:</strong> {{ order.created_at|date:"F d, Y h:i A" }}</p>
+
+                <h4>Shipping Address:</h4>
+                <p style="white-space: pre-line;">{{ order.shipping_address }}</p>
+            </div>
+
+            <p><strong>Next Steps:</strong></p>
+            <ol>
+                <li>Pack the book securely</li>
+                <li>Ship to the buyer's address</li>
+                <li>Update the order status to "Shipped" in your dashboard</li>
+            </ol>
+
+            <p style="text-align: center;">
+                <a href="http://127.0.0.1:8000/orders/{{ order.id }}/" class="button">View Order Details</a>
+            </p>
+
+            <p>Thank you for selling on BOOKCYCLE!<br>
+                <strong>The BOOKCYCLE Team</strong>
+            </p>
+        </div>
+        <div class="footer">
+            <p>This email was sent to {{ seller.email }}</p>
+            <p>&copy; 2026 BOOKCYCLE. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+
+</html>

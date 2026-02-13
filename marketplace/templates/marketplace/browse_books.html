@@ -1,0 +1,83 @@
+{% extends 'marketplace/base.html' %}
+
+{% block title %}Browse Books - BOOKCYCLE{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-3">Browse Books</h2>
+
+    <!-- Search and Filter Form -->
+    <form method="get" class="search-form">
+        <input type="text" name="query" placeholder="Search by title or author..." value="{{ request.GET.query }}">
+        <select name="category">
+            <option value="">All Categories</option>
+            {% for value, label in form.fields.category.choices %}
+            {% if value %}
+            <option value="{{ value }}" {% if request.GET.category==value %}selected{% endif %}>{{ label }}</option>
+            {% endif %}
+            {% endfor %}
+        </select>
+        <select name="condition">
+            <option value="">All Conditions</option>
+            {% for value, label in form.fields.condition.choices %}
+            {% if value %}
+            <option value="{{ value }}" {% if request.GET.condition==value %}selected{% endif %}>{{ label }}</option>
+            {% endif %}
+            {% endfor %}
+        </select>
+        <input type="number" name="min_price" placeholder="Min Price" value="{{ request.GET.min_price }}" step="0.01">
+        <input type="number" name="max_price" placeholder="Max Price" value="{{ request.GET.max_price }}" step="0.01">
+        <select name="sort_by">
+            {% for value, label in form.fields.sort_by.choices %}
+            <option value="{{ value }}" {% if request.GET.sort_by==value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-primary">Search</button>
+    </form>
+
+    <!-- Books Grid -->
+    {% if page_obj %}
+    <div class="grid grid-4">
+        {% for book in page_obj %}
+        <div class="card">
+            {% if book.get_primary_image %}
+            <img src="{{ book.get_primary_image.url }}" alt="{{ book.title }}" class="card-img">
+            {% else %}
+            <div class="card-img"
+                style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 4rem;">
+                📖</div>
+            {% endif %}
+            <div class="card-body">
+                <h3 class="card-title">{{ book.title }}</h3>
+                <p class="card-text">by {{ book.author }}</p>
+                <p class="card-text">
+                    <span class="badge badge-primary">{{ book.get_condition_display }}</span>
+                    <span class="badge badge-success">{{ book.get_category_display }}</span>
+                </p>
+                <div class="card-price">₹{{ book.price }}</div>
+                <a href="{% url 'book_detail' book.pk %}" class="btn btn-primary" style="width: 100%;">View Details</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div style="display: flex; justify-content: center; gap: 1rem; margin-top: 2rem;">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}" class="btn btn-outline">←
+            Previous</a>
+        {% endif %}
+        <span style="padding: 0.75rem;">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}" class="btn btn-outline">Next →</a>
+        {% endif %}
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="empty-state">
+        <p>No books found matching your criteria.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

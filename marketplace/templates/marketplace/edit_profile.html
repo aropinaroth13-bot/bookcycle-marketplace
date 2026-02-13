@@ -1,0 +1,33 @@
+{% extends 'marketplace/base.html' %}
+
+{% block title %}Edit Profile - BOOKCYCLE{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div style="max-width: 600px; margin: 0 auto;">
+        <h2 class="mb-3">Edit Profile</h2>
+        <div class="card">
+            <div class="card-body" style="padding: 2rem;">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {% for field in form %}
+                    <div class="form-group">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}
+                        {% for error in field.errors %}
+                        <small style="color: var(--danger-color);">{{ error }}</small>
+                        {% endfor %}
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    <div style="display: flex; gap: 1rem;">
+                        <button type="submit" class="btn btn-primary" style="flex: 1;">Save Changes</button>
+                        <a href="{% url 'profile' %}" class="btn btn-outline" style="flex: 1;">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

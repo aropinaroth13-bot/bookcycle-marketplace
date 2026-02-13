@@ -1,0 +1,63 @@
+{% extends 'marketplace/base.html' %}
+
+{% block title %}Chat with {{ other_user.username }} - BOOKCYCLE{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div style="max-width: 900px; margin: 0 auto;">
+        <div class="card" style="margin-bottom: 1rem;">
+            <div class="card-body" style="padding: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h3 style="margin: 0;">Chat with {{ other_user.username }}</h3>
+                        <p style="color: var(--gray); margin: 0.25rem 0 0 0;">About: {{ conversation.book.title }}</p>
+                    </div>
+                    <div>
+                        <a href="{% url 'inbox' %}" class="btn btn-outline">← Back to Inbox</a>
+                        <a href="{% url 'book_detail' conversation.book.pk %}" class="btn btn-primary">View Book</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" style="margin-bottom: 1rem;">
+            <div class="card-body" style="padding: 1.5rem; max-height: 500px; overflow-y: auto;" id="messageContainer">
+                {% for message in messages %}
+                <div
+                    style="margin-bottom: 1.5rem; display: flex; {% if message.sender == user %}justify-content: flex-end;{% endif %}">
+                    <div
+                        style="max-width: 70%; padding: 1rem; border-radius: var(--radius); {% if message.sender == user %}background: var(--primary-color); color: white;{% else %}background: var(--bg-light);{% endif %}">
+                        <p style="margin: 0; word-wrap: break-word;">{{ message.content }}</p>
+                        <p style="margin: 0.5rem 0 0 0; font-size: 0.75rem; opacity: 0.7;">
+                            {{ message.created_at|date:"M d, Y h:i A" }}
+                        </p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body" style="padding: 1.5rem;">
+                <form method="post">
+                    {% csrf_token %}
+                    <div style="display: flex; gap: 1rem; align-items: end;">
+                        <div style="flex: 1;">
+                            {{ form.content }}
+                        </div>
+                        <button type="submit" class="btn btn-primary">Send</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Scroll to bottom of messages on page load
+    document.addEventListener('DOMContentLoaded', function () {
+        const container = document.getElementById('messageContainer');
+        container.scrollTop = container.scrollHeight;
+    });
+</script>
+{% endblock %}

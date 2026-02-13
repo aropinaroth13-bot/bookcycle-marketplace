@@ -1,0 +1,41 @@
+{% extends 'marketplace/base.html' %}
+
+{% block title %}Payment Cancelled - BOOKCYCLE{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div style="max-width: 600px; margin: 0 auto; text-align: center;">
+        <div class="card">
+            <div class="card-body" style="padding: 3rem;">
+                <div style="font-size: 4rem; color: var(--warning-color); margin-bottom: 1rem;">⚠️</div>
+                <h2 style="color: var(--warning-color); margin-bottom: 1rem;">Payment Cancelled</h2>
+                <p style="font-size: 1.125rem; color: var(--gray); margin-bottom: 2rem;">
+                    Your payment was cancelled. Don't worry, no charges were made to your account.
+                </p>
+
+                <p style="margin-bottom: 2rem;">
+                    Your orders are still pending. You can complete the payment anytime from your orders page.
+                </p>
+
+                <div style="display: flex; gap: 1rem; flex-direction: column;">
+                    <a href="{% url 'my_orders' %}" class="btn btn-primary">View My Orders</a>
+                    <a href="{% url 'view_cart' %}" class="btn btn-outline">Back to Cart</a>
+                    <a href="{% url 'browse_books' %}" class="btn btn-outline">Continue Shopping</a>
+                </div>
+            </div>
+        </div>
+
+        <div
+            style="margin-top: 2rem; padding: 1.5rem; background: white; border-radius: var(--radius); text-align: left;">
+            <h3 style="margin-bottom: 1rem;">Need Help?</h3>
+            <p style="color: var(--gray);">
+                If you're experiencing issues with payment or have questions, please contact our support team.
+            </p>
+            <ul style="list-style: none; padding: 0; margin-top: 1rem;">
+                <li style="padding: 0.5rem 0;">📧 Email: support@bookcycle.com</li>
+                <li style="padding: 0.5rem 0;">🕐 Response time: Within 24 hours</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

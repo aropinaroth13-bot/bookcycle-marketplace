@@ -1,0 +1,52 @@
+{% extends 'marketplace/base.html' %}
+
+{% block title %}My Sales - BOOKCYCLE{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-3">My Sales</h2>
+
+    {% if sales %}
+    <div class="card">
+        <table>
+            <thead>
+                <tr>
+                    <th>Order #</th>
+                    <th>Book</th>
+                    <th>Buyer</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sale in sales %}
+                <tr>
+                    <td><strong>#{{ sale.id }}</strong></td>
+                    <td>{{ sale.book.title }}</td>
+                    <td>{{ sale.buyer.username }}</td>
+                    <td>₹{{ sale.total_price }}</td>
+                    <td>
+                        <span
+                            class="badge {% if sale.status == 'completed' %}badge-success{% elif sale.status == 'cancelled' %}badge-danger{% else %}badge-warning{% endif %}">
+                            {{ sale.get_status_display }}
+                        </span>
+                    </td>
+                    <td>{{ sale.created_at|date:"M d, Y" }}</td>
+                    <td>
+                        <a href="{% url 'order_detail' sale.pk %}" class="btn btn-sm btn-primary">View</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <p style="font-size: 1.25rem;">You haven't made any sales yet</p>
+        <a href="{% url 'create_listing' %}" class="btn btn-primary mt-2">Create a Listing</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

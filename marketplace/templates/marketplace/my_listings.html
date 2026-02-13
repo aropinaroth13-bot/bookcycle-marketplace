@@ -1,0 +1,48 @@
+{% extends 'marketplace/base.html' %}
+
+{% block title %}My Listings - BOOKCYCLE{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h2>My Listings</h2>
+        <a href="{% url 'create_listing' %}" class="btn btn-primary">+ Create New Listing</a>
+    </div>
+
+    {% if books %}
+    <div class="grid grid-3">
+        {% for book in books %}
+        <div class="card">
+            {% if book.get_primary_image %}
+            <img src="{{ book.get_primary_image.url }}" alt="{{ book.title }}" class="card-img">
+            {% else %}
+            <div class="card-img"
+                style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 4rem;">
+                📖</div>
+            {% endif %}
+            <div class="card-body">
+                <h3 class="card-title">{{ book.title }}</h3>
+                <p class="card-text">by {{ book.author }}</p>
+                <p class="card-text">
+                    <span
+                        class="badge {% if book.status == 'available' %}badge-success{% elif book.status == 'sold' %}badge-danger{% else %}badge-warning{% endif %}">
+                        {{ book.get_status_display }}
+                    </span>
+                </p>
+                <div class="card-price">₹{{ book.price }}</div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <a href="{% url 'book_detail' book.pk %}" class="btn btn-sm btn-primary" style="flex: 1;">View</a>
+                    <a href="{% url 'edit_listing' book.pk %}" class="btn btn-sm btn-outline" style="flex: 1;">Edit</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <p style="font-size: 1.25rem;">You haven't listed any books yet</p>
+        <a href="{% url 'create_listing' %}" class="btn btn-primary mt-2">Create Your First Listing</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

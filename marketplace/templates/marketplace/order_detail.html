@@ -1,0 +1,58 @@
+{% extends 'marketplace/base.html' %}
+
+{% block title %}Order Details - BOOKCYCLE{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div style="max-width: 800px; margin: 0 auto;">
+        <h2 class="mb-3">Order #{{ order.id }}</h2>
+
+        <div class="card">
+            <div class="card-body" style="padding: 2rem;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+                    <div>
+                        <h3 class="mb-2">Book Details</h3>
+                        <p><strong>Title:</strong> {{ order.book.title }}</p>
+                        <p><strong>Author:</strong> {{ order.book.author }}</p>
+                        <p><strong>Quantity:</strong> {{ order.quantity }}</p>
+                        <p><strong>Price:</strong> ₹{{ order.book.price }}</p>
+                        <p><strong>Total:</strong> ₹{{ order.total_price }}</p>
+                    </div>
+                    <div>
+                        <h3 class="mb-2">Order Information</h3>
+                        <p><strong>Status:</strong>
+                            <span
+                                class="badge {% if order.status == 'completed' %}badge-success{% elif order.status == 'cancelled' %}badge-danger{% else %}badge-warning{% endif %}">
+                                {{ order.get_status_display }}
+                            </span>
+                        </p>
+                        <p><strong>Payment Status:</strong>
+                            <span
+                                class="badge {% if order.payment_status == 'completed' %}badge-success{% elif order.payment_status == 'failed' %}badge-danger{% else %}badge-warning{% endif %}">
+                                {{ order.get_payment_status_display }}
+                            </span>
+                        </p>
+                        <p><strong>Date:</strong> {{ order.created_at|date:"F d, Y h:i A" }}</p>
+                        {% if user == order.buyer %}
+                        <p><strong>Seller:</strong> {{ order.seller.username }}</p>
+                        {% else %}
+                        <p><strong>Buyer:</strong> {{ order.buyer.username }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div style="background: var(--bg-light); padding: 1.5rem; border-radius: var(--radius);">
+                    <h3 class="mb-2">Shipping Address</h3>
+                    <p style="white-space: pre-line;">{{ order.shipping_address }}</p>
+                </div>
+
+                {% if user == order.buyer and order.status in "pending_payment,paid" %}
+                <div style="margin-top: 2rem;">
+                    <a href="{% url 'cancel_order' order.pk %}" class="btn btn-danger">Cancel Order</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

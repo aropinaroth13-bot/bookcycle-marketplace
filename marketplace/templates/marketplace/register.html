@@ -1,0 +1,37 @@
+{% extends 'marketplace/base.html' %}
+
+{% block title %}Register - BOOKCYCLE{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div style="max-width: 600px; margin: 0 auto;">
+        <div class="card">
+            <div class="card-body" style="padding: 2rem;">
+                <h2 class="mb-3 text-center">Create Your Account</h2>
+                <form method="post">
+                    {% csrf_token %}
+                    {% for field in form %}
+                    <div class="form-group">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.help_text %}
+                        <small style="color: var(--gray); display: block; margin-top: 0.25rem;">{{ field.help_text
+                            }}</small>
+                        {% endif %}
+                        {% if field.errors %}
+                        {% for error in field.errors %}
+                        <small style="color: var(--danger-color); display: block;">{{ error }}</small>
+                        {% endfor %}
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">Register</button>
+                </form>
+                <p class="mt-3 text-center">
+                    Already have an account? <a href="{% url 'login' %}">Login here</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

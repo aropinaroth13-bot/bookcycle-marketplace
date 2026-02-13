@@ -1,0 +1,97 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}BOOKCYCLE - Buy & Sell Books{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <a href="{% url 'home' %}" class="navbar-brand">📚 BOOKCYCLE</a>
+
+            <!-- Mobile Toggle -->
+            <div class="nav-toggle" id="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+
+            <ul class="navbar-nav" id="nav-menu">
+                <li><a href="{% url 'browse_books' %}">Browse Books</a></li>
+                {% if user.is_authenticated %}
+                <li><a href="{% url 'create_listing' %}">Sell Book</a></li>
+                <li><a href="{% url 'wishlist' %}">❤️ Wishlist</a></li>
+                <li><a href="{% url 'view_cart' %}">🛒 Cart</a></li>
+                <li><a href="{% url 'inbox' %}">💬 Messages</a></li>
+                <li><a href="{% url 'my_listings' %}">My Listings</a></li>
+                <li><a href="{% url 'my_orders' %}">My Orders</a></li>
+                <li><a href="{% url 'profile' %}">{{ user.username }}</a></li>
+                <li><a href="{% url 'logout' %}" class="btn btn-sm btn-outline">Logout</a></li>
+                {% else %}
+                <li><a href="{% url 'login' %}" class="btn btn-sm btn-primary">Login</a></li>
+                <li><a href="{% url 'register' %}" class="btn btn-sm btn-secondary">Register</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="container">
+        <div class="messages">
+            {% for message in messages %}
+            <div
+                class="alert alert-{% if message.tags == 'error' %}error{% elif message.tags == 'success' %}success{% else %}info{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Content -->
+    {% block content %}{% endblock %}
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div>
+                    <h3>BOOKCYCLE</h3>
+                    <p>Your marketplace for buying and selling books.</p>
+                </div>
+                <div>
+                    <h3>Quick Links</h3>
+                    <a href="{% url 'home' %}">Home</a>
+                    <a href="{% url 'browse_books' %}">Browse Books</a>
+                    <a href="{% url 'create_listing' %}">Sell a Book</a>
+                </div>
+                <div>
+                    <h3>Account</h3>
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'profile' %}">My Profile</a>
+                    <a href="{% url 'my_listings' %}">My Listings</a>
+                    <a href="{% url 'my_orders' %}">My Orders</a>
+                    {% else %}
+                    <a href="{% url 'login' %}">Login</a>
+                    <a href="{% url 'register' %}">Register</a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 BOOKCYCLE. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="{% static 'js/app.js' %}"></script>
+</body>
+
+</html>

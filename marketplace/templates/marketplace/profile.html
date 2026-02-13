@@ -1,0 +1,43 @@
+{% extends 'marketplace/base.html' %}
+
+{% block title %}Profile - BOOKCYCLE{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div style="max-width: 800px; margin: 0 auto;">
+        <div class="card">
+            <div class="card-body" style="padding: 2rem;">
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 2rem;">
+                    <div>
+                        <h2>{{ user.get_full_name|default:user.username }}</h2>
+                        <p style="color: var(--gray);">@{{ user.username }}</p>
+                    </div>
+                    <a href="{% url 'edit_profile' %}" class="btn btn-primary">Edit Profile</a>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <p><strong>Email:</strong> {{ user.email }}</p>
+                        <p><strong>Phone:</strong> {{ profile.phone_number|default:"Not provided" }}</p>
+                        <p><strong>Member Since:</strong> {{ user.date_joined|date:"F Y" }}</p>
+                    </div>
+                    <div>
+                        <p><strong>Address:</strong></p>
+                        <p style="color: var(--gray);">{{ profile.address|default:"Not provided" }}</p>
+                    </div>
+                </div>
+
+                <div style="margin-top: 2rem; padding-top: 2rem; border-top: 2px solid var(--border-color);">
+                    <h3 class="mb-2">Quick Links</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <a href="{% url 'my_listings' %}" class="btn btn-outline">My Listings</a>
+                        <a href="{% url 'my_orders' %}" class="btn btn-outline">My Orders</a>
+                        <a href="{% url 'my_sales' %}" class="btn btn-outline">My Sales</a>
+                        <a href="{% url 'create_listing' %}" class="btn btn-outline">Sell a Book</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

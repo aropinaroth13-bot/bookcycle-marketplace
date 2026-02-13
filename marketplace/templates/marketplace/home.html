@@ -1,0 +1,83 @@
+{% extends 'marketplace/base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero">
+    <div class="container">
+        <h1>📚 Buy & Sell Books Online</h1>
+        <p>Discover pre-loved books or sell your collection to book lovers worldwide</p>
+        <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 2rem;">
+            <a href="{% url 'browse_books' %}" class="btn btn-primary">Browse Books</a>
+            {% if user.is_authenticated %}
+            <a href="{% url 'create_listing' %}" class="btn btn-secondary">Sell Your Books</a>
+            {% else %}
+            <a href="{% url 'register' %}" class="btn btn-secondary">Get Started</a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<!-- Latest Books -->
+<section class="py-4">
+    <div class="container">
+        <h2 class="mb-3">Latest Listings</h2>
+        {% if books %}
+        <div class="grid grid-4">
+            {% for book in books %}
+            <div class="card">
+                {% if book.get_primary_image %}
+                <img src="{{ book.get_primary_image.url }}" alt="{{ book.title }}" class="card-img">
+                {% else %}
+                <div class="card-img"
+                    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 4rem;">
+                    📖</div>
+                {% endif %}
+                <div class="card-body">
+                    <h3 class="card-title">{{ book.title }}</h3>
+                    <p class="card-text" style="font-size: 0.875rem;">by {{ book.author }}</p>
+                    <p class="card-text">
+                        <span class="badge badge-primary">{{ book.get_condition_display }}</span>
+                        <span class="badge badge-success">{{ book.get_category_display }}</span>
+                    </p>
+                    <div class="card-price">₹{{ book.price }}</div>
+                    <a href="{% url 'book_detail' book.pk %}" class="btn btn-primary" style="width: 100%;">View
+                        Details</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <p style="font-size: 1.25rem;">No books available yet. Be the first to list!</p>
+            {% if user.is_authenticated %}
+            <a href="{% url 'create_listing' %}" class="btn btn-primary mt-2">Create Listing</a>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% if books %}
+        <div class="text-center mt-3">
+            <a href="{% url 'browse_books' %}" class="btn btn-outline">View All Books →</a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Categories -->
+<section class="py-4" style="background: white;">
+    <div class="container">
+        <h2 class="mb-3 text-center">Browse by Category</h2>
+        <div class="grid grid-3">
+            {% for value, label in categories %}
+            <a href="{% url 'browse_books' %}?category={{ value }}" class="card" style="text-decoration: none;">
+                <div class="card-body text-center">
+                    <h3 style="font-size: 2rem; margin-bottom: 0.5rem;">📚</h3>
+                    <h4 style="color: var(--dark);">{{ label }}</h4>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

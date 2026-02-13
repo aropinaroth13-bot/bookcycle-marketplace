@@ -1,0 +1,90 @@
+{% extends 'marketplace/base.html' %}
+
+{% block title %}Shopping Cart - BOOKCYCLE{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-3">Shopping Cart</h2>
+
+    {% if cart_items %}
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+        <div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Book</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>Total</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in cart_items %}
+                    <tr>
+                        <td>
+                            <div style="display: flex; gap: 1rem; align-items: center;">
+                                {% if item.book.get_primary_image %}
+                                <img src="{{ item.book.get_primary_image.url }}" alt="{{ item.book.title }}"
+                                    style="width: 60px; height: 80px; object-fit: cover; border-radius: 4px;">
+                                {% else %}
+                                <div
+                                    style="width: 60px; height: 80px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 4px; display: flex; align-items: center; justify-content: center; color: white;">
+                                    📖</div>
+                                {% endif %}
+                                <div>
+                                    <strong>{{ item.book.title }}</strong><br>
+                                    <small style="color: var(--gray);">by {{ item.book.author }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>₹{{ item.book.price }}</td>
+                        <td>
+                            <form method="post" action="{% url 'update_cart' item.pk %}" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="number" name="quantity" value="{{ item.quantity }}" min="1"
+                                    style="width: 60px; padding: 0.25rem;">
+                                <button type="submit" class="btn btn-sm btn-outline">Update</button>
+                            </form>
+                        </td>
+                        <td><strong>₹{{ item.get_total_price }}</strong></td>
+                        <td>
+                            <a href="{% url 'remove_from_cart' item.pk %}" class="btn btn-sm btn-danger">Remove</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div>
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="mb-2">Order Summary</h3>
+                    <div
+                        style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 2px solid var(--border-color);">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span>Subtotal:</span>
+                            <strong>₹{{ total }}</strong>
+                        </div>
+                    </div>
+                    <div
+                        style="display: flex; justify-content: space-between; font-size: 1.25rem; margin-bottom: 1.5rem;">
+                        <strong>Total:</strong>
+                        <strong style="color: var(--primary-color);">₹{{ total }}</strong>
+                    </div>
+                    <a href="{% url 'checkout' %}" class="btn btn-primary" style="width: 100%;">Proceed to Checkout</a>
+                    <a href="{% url 'browse_books' %}" class="btn btn-outline mt-1" style="width: 100%;">Continue
+                        Shopping</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <p style="font-size: 1.25rem;">Your cart is empty</p>
+        <a href="{% url 'browse_books' %}" class="btn btn-primary mt-2">Browse Books</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

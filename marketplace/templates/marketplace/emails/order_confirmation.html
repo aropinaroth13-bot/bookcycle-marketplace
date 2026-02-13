@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .content {
+            background: #ffffff;
+            padding: 30px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .footer {
+            background: #f5f5f5;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .button {
+            display: inline-block;
+            background: #10b981;
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+
+        .order-details {
+            background: #f0f4ff;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .order-item {
+            border-bottom: 1px solid #ddd;
+            padding: 15px 0;
+        }
+
+        .total {
+            font-size: 20px;
+            font-weight: bold;
+            color: #10b981;
+            text-align: right;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>✓ Order Confirmed!</h1>
+        </div>
+        <div class="content">
+            <p>Hi {{ buyer.get_full_name|default:buyer.username }},</p>
+
+            <p>Thank you for your order! Your payment has been successfully processed.</p>
+
+            <div class="order-details">
+                <h3>Order Details</h3>
+                <p><strong>Order Number:</strong> #{{ order.id }}</p>
+                <p><strong>Order Date:</strong> {{ order.created_at|date:"F d, Y h:i A" }}</p>
+
+                <div class="order-item">
+                    <p><strong>{{ order.book.title }}</strong></p>
+                    <p>by {{ order.book.author }}</p>
+                    <p>Quantity: {{ order.quantity }} × ₹{{ order.book.price }}</p>
+                </div>
+
+                <p class="total">Total: ₹{{ order.total_price }}</p>
+
+                <h4>Shipping Address:</h4>
+                <p style="white-space: pre-line;">{{ order.shipping_address }}</p>
+            </div>
+
+            <p><strong>What's Next?</strong></p>
+            <ul>
+                <li>The seller has been notified and will process your order</li>
+                <li>You'll receive a shipping notification once the book is dispatched</li>
+                <li>Track your order status anytime from your account</li>
+            </ul>
+
+            <p style="text-align: center;">
+                <a href="http://127.0.0.1:8000/orders/{{ order.id }}/" class="button">View Order Details</a>
+            </p>
+
+            <p>Thank you for shopping with BOOKCYCLE!<br>
+                <strong>The BOOKCYCLE Team</strong>
+            </p>
+        </div>
+        <div class="footer">
+            <p>This email was sent to {{ buyer.email }}</p>
+            <p>&copy; 2026 BOOKCYCLE. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+
+</html>

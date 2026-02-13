@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .content {
+            background: #ffffff;
+            padding: 30px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .footer {
+            background: #f5f5f5;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            border-radius: 0 0 8px 8px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Order Cancelled</h1>
+        </div>
+        <div class="content">
+            <p>Hi {{ order.buyer.get_full_name|default:order.buyer.username }},</p>
+
+            <p>Your order has been cancelled as requested.</p>
+
+            <p><strong>Order #{{ order.id }}</strong><br>
+                {{ order.book.title }}</p>
+
+            <p>If you paid for this order, your refund will be processed within 5-7 business days.</p>
+
+            <p>If you have any questions, please contact our support team.</p>
+
+            <p>Best regards,<br>
+                <strong>The BOOKCYCLE Team</strong>
+            </p>
+        </div>
+        <div class="footer">
+            <p>This email was sent to {{ order.buyer.email }}</p>
+            <p>&copy; 2026 BOOKCYCLE. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+
+</html>

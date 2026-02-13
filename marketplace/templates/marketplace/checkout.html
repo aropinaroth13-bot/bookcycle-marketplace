@@ -1,0 +1,59 @@
+{% extends 'marketplace/base.html' %}
+
+{% block title %}Checkout - BOOKCYCLE{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-3">Checkout</h2>
+
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+        <div>
+            <div class="card">
+                <div class="card-body" style="padding: 2rem;">
+                    <h3 class="mb-3">Shipping Information</h3>
+                    <form method="post">
+                        {% csrf_token %}
+                        {% for field in form %}
+                        <div class="form-group">
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}
+                            {% for error in field.errors %}
+                            <small style="color: var(--danger-color);">{{ error }}</small>
+                            {% endfor %}
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">Place Order</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="mb-2">Order Summary</h3>
+                    <div style="max-height: 300px; overflow-y: auto; margin-bottom: 1rem;">
+                        {% for item in cart_items %}
+                        <div
+                            style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border-color);">
+                            <div>
+                                <strong>{{ item.book.title }}</strong><br>
+                                <small>{{ item.quantity }}x ₹{{ item.book.price }}</small>
+                            </div>
+                            <strong>₹{{ item.get_total_price }}</strong>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div
+                        style="display: flex; justify-content: space-between; font-size: 1.25rem; padding-top: 1rem; border-top: 2px solid var(--border-color);">
+                        <strong>Total:</strong>
+                        <strong style="color: var(--primary-color);">₹{{ total }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

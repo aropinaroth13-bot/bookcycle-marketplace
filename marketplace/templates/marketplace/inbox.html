@@ -1,0 +1,52 @@
+{% extends 'marketplace/base.html' %}
+
+{% block title %}Inbox - BOOKCYCLE{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-3">Inbox 💬</h2>
+
+    {% if conversations %}
+    <div class="card">
+        {% for conversation in conversations %}
+        <a href="{% url 'conversation_detail' conversation.pk %}"
+            style="text-decoration: none; color: inherit; display: block; padding: 1.5rem; border-bottom: 1px solid var(--border-color); transition: background 0.2s;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div style="flex: 1;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                        <strong>{{ conversation.get_other_user.username }}</strong>
+                        {% if conversation.unread_count > 0 %}
+                        <span class="badge badge-primary">{{ conversation.unread_count }} new</span>
+                        {% endif %}
+                    </div>
+                    <p style="color: var(--gray); margin: 0; font-size: 0.875rem;">
+                        Re: {{ conversation.book.title }}
+                    </p>
+                    {% if conversation.messages.last %}
+                    <p style="color: var(--gray); margin: 0.5rem 0 0 0; font-size: 0.875rem;">
+                        {{ conversation.messages.last.content|truncatewords:10 }}
+                    </p>
+                    {% endif %}
+                </div>
+                <div style="text-align: right; color: var(--gray); font-size: 0.875rem;">
+                    {{ conversation.updated_at|timesince }} ago
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <p style="font-size: 1.25rem;">No messages yet</p>
+        <p style="color: var(--gray);">Start a conversation with a seller to ask about their books!</p>
+        <a href="{% url 'browse_books' %}" class="btn btn-primary mt-2">Browse Books</a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    a[href*="conversation_detail"]:hover {
+        background: var(--bg-light);
+    }
+</style>
+{% endblock %}

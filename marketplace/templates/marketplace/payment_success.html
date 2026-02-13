@@ -1,0 +1,49 @@
+{% extends 'marketplace/base.html' %}
+
+{% block title %}Payment Successful - BOOKCYCLE{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div style="max-width: 600px; margin: 0 auto; text-align: center;">
+        <div class="card">
+            <div class="card-body" style="padding: 3rem;">
+                <div style="font-size: 4rem; color: var(--secondary-color); margin-bottom: 1rem;">✓</div>
+                <h2 style="color: var(--secondary-color); margin-bottom: 1rem;">Payment Successful!</h2>
+                <p style="font-size: 1.125rem; color: var(--gray); margin-bottom: 2rem;">
+                    Your payment has been processed successfully. You will receive a confirmation email shortly.
+                </p>
+
+                <div
+                    style="background: var(--bg-light); padding: 1.5rem; border-radius: var(--radius); margin-bottom: 2rem;">
+                    <p style="font-size: 0.875rem; color: var(--gray);">Transaction ID</p>
+                    <p style="font-family: monospace; font-size: 0.875rem; word-break: break-all;">{{ session_id }}</p>
+                </div>
+
+                <div style="display: flex; gap: 1rem; flex-direction: column;">
+                    <a href="{% url 'my_orders' %}" class="btn btn-primary">View My Orders</a>
+                    <a href="{% url 'browse_books' %}" class="btn btn-outline">Continue Shopping</a>
+                </div>
+            </div>
+        </div>
+
+        <div
+            style="margin-top: 2rem; padding: 1.5rem; background: white; border-radius: var(--radius); text-align: left;">
+            <h3 style="margin-bottom: 1rem;">What's Next?</h3>
+            <ul style="list-style: none; padding: 0;">
+                <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--border-color);">
+                    ✉️ <strong>Order Confirmation:</strong> Check your email for order details
+                </li>
+                <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--border-color);">
+                    📦 <strong>Seller Notification:</strong> The seller has been notified and will process your order
+                </li>
+                <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--border-color);">
+                    📬 <strong>Shipping Updates:</strong> Track your order status in "My Orders"
+                </li>
+                <li style="padding: 0.5rem 0;">
+                    ⭐ <strong>Review:</strong> Share your experience after receiving your book
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

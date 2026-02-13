@@ -1,0 +1,253 @@
+{% extends 'marketplace/base.html' %}
+
+{% block title %}{{ book.title }} - BOOKCYCLE{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem;">
+        <!-- Book Images Carousel -->
+        <div>
+            {% if book_images %}
+            <div class="image-carousel">
+                <div class="carousel-main">
+                    <img src="{{ book_images.0.url }}" alt="{{ book.title }}" class="book-img-main" id="mainImage">
+                </div>
+                {% if book_images|length > 1 %}
+                <div class="carousel-thumbnails">
+                    {% for img in book_images %}
+                    <img src="{{ img.url }}" alt="{{ book.title }}"
+                        class="carousel-thumb {% if forloop.first %}active{% endif %}"
+                        onclick="changeImage('{{ img.url }}', this)">
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="book-img-main"
+                style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 6rem;">
+                📖</div>
+            {% endif %}
+        </div>
+
+        <!-- Book Details -->
+        <div>
+            <h1 style="margin-bottom: 0.5rem;">{{ book.title }}</h1>
+            <p style="font-size: 1.25rem; color: var(--gray); margin-bottom: 1rem;">by {{ book.author }}</p>
+
+            <!-- Rating Display -->
+            {% if book_stats.total_reviews > 0 %}
+            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                <div style="font-size: 1.5rem;">
+                    {% for i in "12345" %}
+                    {% if forloop.counter <= book_stats.average_rating %}⭐{% else %}☆{% endif %} {% endfor %} </div>
+                        <div>
+                            <span style="font-weight: bold;">{{ book_stats.average_rating|floatformat:1 }}</span>
+                            <a href="{% url 'book_reviews' book.pk %}"
+                                style="color: var(--gray); text-decoration: none;">
+                                ({{ book_stats.total_reviews }} review{{ book_stats.total_reviews|pluralize }})
+                            </a>
+                        </div>
+                </div>
+                {% endif %}
+
+                <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                    <span class="badge badge-primary">{{ book.get_condition_display }}</span>
+                    <span class="badge badge-success">{{ book.get_category_display }}</span>
+                    <span class="badge badge-warning">{{ book.get_status_display }}</span>
+                </div>
+
+                <div class="card-price" style="margin-bottom: 2rem;">₹{{ book.price }}</div>
+
+                <!-- Seller Info -->
+                <div
+                    style="background: var(--bg-light); padding: 1.5rem; border-radius: var(--radius); margin-bottom: 1.5rem;">
+                    <h4 style="margin-bottom: 1rem;">Seller Information</h4>
+                    <p><strong>{{ book.seller.username }}</strong></p>
+                    <div style="display: flex; gap: 2rem; margin-top: 0.5rem; font-size: 0.875rem; color: var(--gray);">
+                        <span>{{ seller_stats.total_sales }} sales</span>
+                        <span>{{ seller_stats.available_listings }} active listings</span>
+                        {% if seller_stats.total_ratings > 0 %}
+                        <span>⭐ {{ seller_stats.average_rating|floatformat:1 }} ({{ seller_stats.total_ratings
+                            }})</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div
+                    style="background: var(--bg-light); padding: 1.5rem; border-radius: var(--radius); margin-bottom: 1.5rem;">
+                    <h3 style="margin-bottom: 1rem;">Description</h3>
+                    <p style="line-height: 1.8;">{{ book.description }}</p>
+                </div>
+
+                <!-- Book Details -->
+                <div style="margin-bottom: 1.5rem;">
+                    {% if book.isbn %}<p><strong>ISBN:</strong> {{ book.isbn }}</p>{% endif %}
+                    {% if book.publisher %}<p><strong>Publisher:</strong> {{ book.publisher }}</p>{% endif %}
+                    <p><strong>Listed:</strong> {{ book.created_at|date:"F d, Y" }}</p>
+                </div>
+
+                <!-- Action Buttons -->
+                <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    {% if user.is_authenticated and user != book.seller and book.is_available %}
+                    <a href="{% url 'add_to_cart' book.pk %}" class="btn btn-primary" style="width: 100%;">Add to Cart
+                        🛒</a>
+
+                    {% if in_wishlist %}
+                    <a href="{% url 'wishlist' %}" class="btn btn-outline" style="width: 100%;">❤️ In Wishlist</a>
+                    {% else %}
+                    <a href="{% url 'add_to_wishlist' book.pk %}" class="btn btn-outline" style="width: 100%;">❤️ Add to
+                        Wishlist</a>
+                    {% endif %}
+
+                    <a href="{% url 'start_conversation' book.pk %}" class="btn btn-secondary" style="width: 100%;">💬
+                        Message Seller</a>
+
+                    <a href="{% url 'submit_review' book.pk %}" class="btn btn-outline" style="width: 100%;">⭐ Write a
+                        Review</a>
+
+                    {% elif not user.is_authenticated %}
+                    <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-primary"
+                        style="width: 100%;">Login to Purchase</a>
+                    {% elif user == book.seller %}
+                    <a href="{% url 'edit_listing' book.pk %}" class="btn btn-outline" style="width: 100%;">Edit
+                        Listing</a>
+                    {% else %}
+                    <button class="btn btn-outline" style="width: 100%;" disabled>Not Available</button>
+                    {% endif %}
+                </div>
+
+                <!-- Social Share -->
+                <div style="margin-top: 2rem; padding-top: 2rem; border-top: 2px solid var(--border-color);">
+                    <h4 style="margin-bottom: 1rem; color: var(--gray);">Share this book</h4>
+                    <div class="social-share">
+                        <button class="social-btn social-btn-facebook"
+                            onclick="shareOnFacebook('{{ request.build_absolute_uri }}', '{{ book.title }}')">
+                            📘 Facebook
+                        </button>
+                        <button class="social-btn social-btn-twitter"
+                            onclick="shareOnTwitter('{{ request.build_absolute_uri }}', '{{ book.title }}')">
+                            🐦 Twitter
+                        </button>
+                        <button class="social-btn social-btn-whatsapp"
+                            onclick="shareOnWhatsApp('{{ request.build_absolute_uri }}', '{{ book.title }}')">
+                            📱 WhatsApp
+                        </button>
+                        <button class="social-btn social-btn-copy"
+                            onclick="copyLink('{{ request.build_absolute_uri }}')">
+                            🔗 Copy Link
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Reviews -->
+        {% if recent_reviews %}
+        <div style="margin-top: 3rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2>Recent Reviews</h2>
+                <a href="{% url 'book_reviews' book.pk %}" class="btn btn-outline">View All {{ book_stats.total_reviews
+                    }} Reviews</a>
+            </div>
+            <div class="grid grid-3">
+                {% for review in recent_reviews %}
+                <div class="card">
+                    <div class="card-body">
+                        <div style="font-size: 1.25rem; margin-bottom: 0.5rem;">
+                            {% for i in "12345" %}
+                            {% if forloop.counter <= review.rating %}⭐{% endif %} {% endfor %} </div>
+                                <h4 style="margin: 0 0 0.5rem 0;">{{ review.title }}</h4>
+                                <p style="color: var(--gray); font-size: 0.875rem; margin-bottom: 0.75rem;">
+                                    by {{ review.user.username }}
+                                    {% if review.verified_purchase %}
+                                    <span class="badge badge-success">Verified</span>
+                                    {% endif %}
+                                </p>
+                                <p>{{ review.comment|truncatewords:30 }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Related Books -->
+            {% if related_books %}
+            <div style="margin-top: 3rem;">
+                <h2 class="mb-3">Related Books</h2>
+                <div class="grid grid-4">
+                    {% for rbook in related_books %}
+                    <div class="card">
+                        {% if rbook.get_primary_image %}
+                        <img src="{{ rbook.get_primary_image.url }}" alt="{{ rbook.title }}" class="card-img">
+                        {% else %}
+                        <div class="card-img"
+                            style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 4rem;">
+                            📖</div>
+                        {% endif %}
+                        <div class="card-body">
+                            <h3 class="card-title">{{ rbook.title }}</h3>
+                            <p class="card-text">by {{ rbook.author }}</p>
+                            <div class="card-price">₹{{ rbook.price }}</div>
+                            <a href="{% url 'book_detail' rbook.pk %}" class="btn btn-primary" style="width: 100%;">View
+                                Details</a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <style>
+            .image-carousel {
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .carousel-main img {
+                width: 100%;
+                height: auto;
+                border-radius: var(--radius);
+                object-fit: cover;
+            }
+
+            .carousel-thumbnails {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+                gap: 0.75rem;
+            }
+
+            .carousel-thumb {
+                width: 100%;
+                height: 80px;
+                object-fit: cover;
+                border-radius: var(--radius);
+                cursor: pointer;
+                border: 2px solid transparent;
+                transition: all 0.3s;
+            }
+
+            .carousel-thumb:hover {
+                border-color: var(--primary-color);
+                transform: scale(1.05);
+            }
+
+            .carousel-thumb.active {
+                border-color: var(--primary-color);
+                box-shadow: 0 0 0 2px var(--bg-color), 0 0 0 4px var(--primary-color);
+            }
+        </style>
+
+        <script>
+            function changeImage(url, thumb) {
+                document.getElementById('mainImage').src = url;
+
+                // Update active state
+                document.querySelectorAll('.carousel-thumb').forEach(t => t.classList.remove('active'));
+                thumb.classList.add('active');
+            }
+        </script>
+        {% endblock %}

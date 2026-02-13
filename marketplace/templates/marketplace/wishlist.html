@@ -1,0 +1,49 @@
+{% extends 'marketplace/base.html' %}
+
+{% block title %}My Wishlist - BOOKCYCLE{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-3">My Wishlist ❤️</h2>
+
+    {% if wishlist_items %}
+    <div class="grid grid-3">
+        {% for item in wishlist_items %}
+        <div class="card">
+            {% if item.book.get_primary_image %}
+            <img src="{{ item.book.get_primary_image.url }}" alt="{{ item.book.title }}" class="card-img">
+            {% else %}
+            <div class="card-img"
+                style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 4rem;">
+                📖</div>
+            {% endif %}
+            <div class="card-body">
+                <h3 class="card-title">{{ item.book.title }}</h3>
+                <p class="card-text">by {{ item.book.author }}</p>
+                <div class="card-price">₹{{ item.book.price }}</div>
+                <p class="card-text">
+                    <span
+                        class="badge {% if item.book.status == 'available' %}badge-success{% else %}badge-danger{% endif %}">
+                        {{ item.book.get_status_display }}
+                    </span>
+                </p>
+                <div style="display: flex; gap: 0.5rem; flex-direction: column;">
+                    <a href="{% url 'book_detail' item.book.pk %}" class="btn btn-sm btn-primary">View Details</a>
+                    {% if item.book.status == 'available' %}
+                    <a href="{% url 'add_to_cart' item.book.pk %}" class="btn btn-sm btn-secondary">Add to Cart</a>
+                    {% endif %}
+                    <a href="{% url 'remove_from_wishlist' item.pk %}" class="btn btn-sm btn-danger">Remove</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <p style="font-size: 1.25rem;">Your wishlist is empty</p>
+        <p style="color: var(--gray);">Save books you're interested in to your wishlist!</p>
+        <a href="{% url 'browse_books' %}" class="btn btn-primary mt-2">Browse Books</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
