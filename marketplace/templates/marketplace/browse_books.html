@@ -13,7 +13,7 @@
             <option value="">All Categories</option>
             {% for value, label in form.fields.category.choices %}
             {% if value %}
-            <option value="{{ value }}" {% if request.GET.category==value %}selected{% endif %}>{{ label }}</option>
+            <option value="{{ value }}" {% if request.GET.category == value %}selected{% endif %}>{{ label }}</option>
             {% endif %}
             {% endfor %}
         </select>
@@ -21,7 +21,7 @@
             <option value="">All Conditions</option>
             {% for value, label in form.fields.condition.choices %}
             {% if value %}
-            <option value="{{ value }}" {% if request.GET.condition==value %}selected{% endif %}>{{ label }}</option>
+            <option value="{{ value }}" {% if request.GET.condition == value %}selected{% endif %}>{{ label }}</option>
             {% endif %}
             {% endfor %}
         </select>
@@ -29,7 +29,7 @@
         <input type="number" name="max_price" placeholder="Max Price" value="{{ request.GET.max_price }}" step="0.01">
         <select name="sort_by">
             {% for value, label in form.fields.sort_by.choices %}
-            <option value="{{ value }}" {% if request.GET.sort_by==value %}selected{% endif %}>{{ label }}</option>
+            <option value="{{ value }}" {% if request.GET.sort_by == value %}selected{% endif %}>{{ label }}</option>
             {% endfor %}
         </select>
         <button type="submit" class="btn btn-primary">Search</button>
