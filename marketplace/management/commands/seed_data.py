@@ -1,8 +1,11 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
-from marketplace.models import Book, UserProfile
+from marketplace.models import Book, UserProfile, BookImage
 from decimal import Decimal
+from django.core.files.base import ContentFile
 import random
+import requests
+from io import BytesIO
 
 
 class Command(BaseCommand):
@@ -77,18 +80,37 @@ class Command(BaseCommand):
 
         prices = [199, 299, 399, 499, 599, 699, 799, 899, 999, 1299, 1499, 1999]
         
-        for book_data in books_data:
+        for idx, book_data in enumerate(books_data, 1):
             if not Book.objects.filter(title=book_data['title'], author=book_data['author']).exists():
                 # Randomly assign to a seller (not admin)
                 seller = random.choice(users[:4])
                 price = Decimal(random.choice(prices))
                 
-                Book.objects.create(
+                book = Book.objects.create(
                     seller=seller,
                     price=price,
                     **book_data
                 )
-                self.stdout.write(self.style.SUCCESS(f'Created book: {book_data["title"]}'))
+                
+                # Add book cover image using placeholder service
+                try:
+                    # Use a book cover placeholder service with book number
+                    colors = ['667eea', '764ba2', 'f093fb', '4facfe', 'fa709a', 'fee140', '30cfd0', 'a8edea']
+                    color = random.choice(colors)
+                    
+                    # Create a nice book cover placeholder
+                    image_url = f'https://via.placeholder.com/400x600/{color}/ffffff?text={book.title[:20].replace(" ", "+")}'
+                    
+                    response = requests.get(image_url, timeout=10)
+                    if response.status_code == 200:
+                        image_content = ContentFile(response.content)
+                        book_image = BookImage.objects.create(book=book, is_primary=True)
+                        book_image.image.save(f'{book.title[:30].replace(" ", "_")}.jpg', image_content, save=True)
+                        self.stdout.write(self.style.SUCCESS(f'✓ Created book with image: {book_data["title"]}'))
+                    else:
+                        self.stdout.write(self.style.SUCCESS(f'✓ Created book (no image): {book_data["title"]}'))
+                except Exception as e:
+                    self.stdout.write(self.style.WARNING(f'✓ Created book (image failed): {book_data["title"]} - {str(e)}'))
             else:
                 self.stdout.write(f'Book already exists: {book_data["title"]}')
 
