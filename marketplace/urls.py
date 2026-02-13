@@ -61,5 +61,5 @@ urlpatterns = [
     path('conversation/start/<int:pk>/', views.start_conversation, name='start_conversation'),
     
     # Admin utilities
-    path('admin-seed-database/', views_admin.seed_database, name='admin_seed_database'),
+    path('initialize/', views_admin.initialize_database, name='initialize_database'),
 ]
