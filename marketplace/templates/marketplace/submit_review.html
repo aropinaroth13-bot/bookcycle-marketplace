@@ -20,9 +20,7 @@
                             {% for value, label in form.rating.field.choices %}
                             <label
                                 style="cursor: pointer; padding: 0.5rem 1rem; border: 2px solid var(--border-color); border-radius: var(--radius); transition: all 0.3s;">
-                                <input type="radio" name="rating" value="{{ value }}" {% if
-                                    form.rating.value==value|stringformat:"s" %}checked{% endif %}
-                                    style="display: none;">
+                                <input type="radio" name="rating" value="{{ value }}" {% if form.rating.value == value|stringformat:"s" %}checked{% endif %} style="display: none;">
                                 <span style="font-size: 1.5rem;">{{ label }}</span>
                             </label>
                             {% endfor %}
