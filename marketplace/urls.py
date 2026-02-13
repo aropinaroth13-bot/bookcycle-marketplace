@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 from . import advanced_views
+from . import views_admin
 
 urlpatterns = [
     # Home
@@ -58,4 +59,7 @@ urlpatterns = [
     path('inbox/', views.inbox, name='inbox'),
     path('conversation/<int:pk>/', views.conversation_detail, name='conversation_detail'),
     path('conversation/start/<int:pk>/', views.start_conversation, name='start_conversation'),
+    
+    # Admin utilities
+    path('admin-seed-database/', views_admin.seed_database, name='admin_seed_database'),
 ]
