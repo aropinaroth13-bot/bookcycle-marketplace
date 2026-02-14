@@ -3,7 +3,7 @@
 /* Import Google Font */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-/* CSS Variables */
+/* CSS Variables - Light Theme (Default) */
 :root {
     --primary-color: #2563eb;
     --primary-dark: #1d4ed8;
@@ -18,10 +18,35 @@
     --border-color: #e5e7eb;
     --bg-light: #f9fafb;
     --white: #ffffff;
+    --text-color: #1f2937;
+    --bg-color: #ffffff;
+    --card-bg: #ffffff;
     --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.1);
     --radius: 8px;
     --transition: all 0.3s ease;
+}
+
+/* Dark Theme */
+[data-theme="dark"] {
+    --primary-color: #60a5fa;
+    --primary-dark: #3b82f6;
+    --secondary-color: #34d399;
+    --secondary-dark: #10b981;
+    --danger-color: #f87171;
+    --warning-color: #fbbf24;
+    --dark: #f9fafb;
+    --dark-light: #e5e7eb;
+    --gray: #9ca3af;
+    --gray-light: #6b7280;
+    --border-color: #374151;
+    --bg-light: #1f2937;
+    --white: #111827;
+    --text-color: #f9fafb;
+    --bg-color: #111827;
+    --card-bg: #1f2937;
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.5);
 }
 
 /* Reset & Base */
@@ -34,8 +59,9 @@
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     line-height: 1.6;
-    color: var(--dark);
-    background: var(--bg-light);
+    color: var(--text-color);
+    background: var(--bg-color);
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 a {
@@ -861,4 +887,39 @@ tr:not(:last-child) {
 
 .autocomplete-item:hover {
     background: var(--bg-light);
+}
+
+/* Theme Toggle Button */
+.theme-toggle {
+    background: var(--card-bg);
+    border: 2px solid var(--border-color);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--transition);
+    font-size: 1.2rem;
+}
+
+.theme-toggle:hover {
+    transform: scale(1.1);
+    border-color: var(--primary-color);
+}
+
+.theme-icon {
+    display: inline-block;
+    transition: transform 0.3s ease;
+}
+
+.theme-toggle:hover .theme-icon {
+    transform: rotate(20deg);
+}
+
+/* Card backgrounds need to use theme variable */
+.card {
+    background: var(--card-bg);
+    transition: background-color 0.3s ease;
 }

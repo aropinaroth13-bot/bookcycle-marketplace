@@ -1,3 +1,55 @@
+// Theme Toggle Functionality
+(function () {
+    // Get theme from localStorage or default to 'light'
+    const currentTheme = localStorage.getItem('theme') || 'light';
+
+    // Apply theme immediately to prevent flash
+    document.documentElement.setAttribute('data-theme', currentTheme);
+
+    // Wait for DOM to load
+    document.addEventListener('DOMContentLoaded', function () {
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.querySelector('.theme-icon');
+
+        // Set initial icon
+        updateThemeIcon(currentTheme);
+
+        if (themeToggle) {
+            themeToggle.addEventListener('click', function () {
+                // Get current theme
+                const theme = document.documentElement.getAttribute('data-theme');
+
+                // Toggle theme
+                const newTheme = theme === 'dark' ? 'light' : 'dark';
+
+                // Update DOM
+                document.documentElement.setAttribute('data-theme', newTheme);
+
+                // Save to localStorage
+                localStorage.setItem('theme', newTheme);
+
+                // Update icon
+                updateThemeIcon(newTheme);
+
+                // Show toast notification
+                if (window.toast) {
+                    toast.show(
+                        `${newTheme === 'dark' ? 'Dark' : 'Light'} mode activated`,
+                        'success',
+                        2000
+                    );
+                }
+            });
+        }
+
+        function updateThemeIcon(theme) {
+            if (themeIcon) {
+                themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
+            }
+        }
+    });
+})();
+
 // Toast notification system
 class ToastNotification {
     constructor() {
