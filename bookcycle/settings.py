@@ -189,8 +189,8 @@ LOGOUT_REDIRECT_URL = '/'
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Payment Gateway Settings (add to .env in production)
-STRIPE_PUBLIC_KEY = ''
-STRIPE_SECRET_KEY = ''
-RAZORPAY_KEY_ID = ''
-RAZORPAY_KEY_SECRET = ''
+STRIPE_PUBLIC_KEY = os.environ.get('STRIPE_PUBLIC_KEY', '')
+STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', '')
+RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID', '')
+RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET', '')
 
