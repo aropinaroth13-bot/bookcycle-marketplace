@@ -1,0 +1,79 @@
+{% extends 'marketplace/base.html' %}
+
+{% block title %}Update Tracking - Order #{{ order.id }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="card" style="max-width: 700px; margin: 0 auto;">
+        <div class="card-body" style="padding: 2rem;">
+            <h2 style="margin-bottom: 1.5rem;">📦 Update Tracking Information</h2>
+
+            <div
+                style="background: var(--bg-light); padding: 1rem; border-radius: var(--radius); margin-bottom: 1.5rem;">
+                <h3 style="font-size: 1rem; margin-bottom: 0.5rem;">Order #{{ order.id }}</h3>
+                <p style="margin: 0; color: var(--gray);">
+                    <strong>Book:</strong> {{ order.book.title }}<br>
+                    <strong>Buyer:</strong> {{ order.buyer.get_full_name }} ({{ order.buyer.username }})<br>
+                    <strong>Total:</strong> ₹{{ order.total_price }}
+                </p>
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+
+                <div style="margin-bottom: 1.5rem;">
+                    <label for="id_tracking_number" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">
+                        Tracking Number *
+                    </label>
+                    {{ form.tracking_number }}
+                    {% if form.tracking_number.errors %}
+                    <p style="color: var(--danger-color); margin-top: 0.5rem;">{{ form.tracking_number.errors }}</p>
+                    {% endif %}
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <label for="id_courier_service" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">
+                        Courier Service *
+                    </label>
+                    {{ form.courier_service }}
+                    {% if form.courier_service.errors %}
+                    <p style="color: var(--danger-color); margin-top: 0.5rem;">{{ form.courier_service.errors }}</p>
+                    {% endif %}
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <label for="id_estimated_delivery_date"
+                        style="display: block; margin-bottom: 0.5rem; font-weight: 500;">
+                        Estimated Delivery Date
+                    </label>
+                    {{ form.estimated_delivery_date }}
+                    <p style="color: var(--gray); font-size: 0.875rem; margin-top: 0.25rem;">
+                        {{ form.estimated_delivery_date.help_text }}
+                    </p>
+                    {% if form.estimated_delivery_date.errors %}
+                    <p style="color: var(--danger-color); margin-top: 0.5rem;">{{ form.estimated_delivery_date.errors }}
+                    </p>
+                    {% endif %}
+                </div>
+
+                <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">
+                        💾 Save Tracking Info
+                    </button>
+                    <a href="{% url 'order_detail' order.id %}" class="btn btn-secondary" style="flex: 1;">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+
+            <div
+                style="background: #fffbeb; border-left: 4px solid var(--warning-color); padding: 1rem; margin-top: 2rem; border-radius: var(--radius);">
+                <p style="margin: 0; font-size: 0.875rem; color: var(--dark);">
+                    <strong>📧 Note:</strong> The buyer will receive an email notification with the tracking details
+                    once you save this information.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -106,6 +106,60 @@ def send_order_shipped_email(order):
         return False
 
 
+def send_tracking_update_email(order):
+    """Send tracking update email to buyer"""
+    subject = f'Tracking Information Added - Order #{order.id} 📦'
+    
+    # Get courier service display name
+    courier_display = dict(order._meta.get_field('courier_service').choices).get(
+        order.courier_service, order.courier_service)
+    
+    html_message = f"""
+    <html>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+        <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h2 style="color: #2563eb;">📦 Your Order Has Been Shipped!</h2>
+            <p>Hi {order.buyer.get_full_name()},</p>
+            <p>Great news! Your order has been shipped and tracking information is now available.</p>
+            
+            <div style="background: #f9fafb; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <h3 style="margin-top: 0;">Order #{order.id}</h3>
+                <p><strong>Book:</strong> {order.book.title}</p>
+                <p><strong>Total:</strong> ₹{order.total_price}</p>
+                <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 15px 0;">
+                <p><strong>📦 Courier Service:</strong> {courier_display}</p>
+                <p><strong>🔢 Tracking Number:</strong> <code style="background: #fff; padding: 5px 10px; border-radius: 4px; font-size: 1.1em;">{order.tracking_number}</code></p>
+                {f'<p><strong>📅 Expected Delivery:</strong> {order.estimated_delivery_date.strftime("%B %d, %Y")}</p>' if order.estimated_delivery_date else ''}
+            </div>
+            
+            <p>You can use the tracking number above to track your shipment on the courier's website.</p>
+            <p>Thank you for shopping with BOOKCYCLE! 📚</p>
+            
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 0.875rem;">
+                <p>BOOKCYCLE - Your marketplace for buying and selling books</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    
+    plain_message = strip_tags(html_message)
+    
+    try:
+        send_mail(
+            subject,
+            plain_message,
+            settings.DEFAULT_FROM_EMAIL,
+            [order.buyer.email],
+            html_message=html_message,
+            fail_silently=False,
+        )
+        return True
+    except Exception as e:
+        print(f"Error sending tracking update email: {e}")
+        return False
+
+
 def send_order_completed_email(order):
     """Send order completed email to buyer"""
     subject = f'Order #{order.id} Completed - Leave a Review! ⭐'

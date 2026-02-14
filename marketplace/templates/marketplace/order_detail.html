@@ -22,7 +22,7 @@
                         <h3 class="mb-2">Order Information</h3>
                         <p><strong>Status:</strong>
                             <span
-                                class="badge {% if order.status == 'completed' %}badge-success{% elif order.status == 'cancelled' %}badge-danger{% else %}badge-warning{% endif %}">
+                                class="badge {% if order.status == 'completed' %}badge-success{% elif order.status == 'cancelled' %}badge-danger{% elif order.status == 'shipped' %}badge-info{% else %}badge-warning{% endif %}">
                                 {{ order.get_status_display }}
                             </span>
                         </p>
@@ -46,13 +46,75 @@
                     <p style="white-space: pre-line;">{{ order.shipping_address }}</p>
                 </div>
 
-                {% if user == order.buyer and order.status in "pending_payment,paid" %}
-                <div style="margin-top: 2rem;">
-                    <a href="{% url 'cancel_order' order.pk %}" class="btn btn-danger">Cancel Order</a>
+                {% if order.tracking_number %}
+                <!-- Tracking Information -->
+                <div
+                    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 1.5rem; border-radius: var(--radius); margin-top: 2rem; color: white;">
+                    <h3 style="color: white; margin-bottom: 1rem;">📦 Tracking Information</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div>
+                            <p style="margin-bottom: 0.5rem; opacity: 0.9;">Courier Service</p>
+                            <p style="font-size: 1.1rem; font-weight: 600;">{{ order.get_courier_service_display }}</p>
+                        </div>
+                        <div>
+                            <p style="margin-bottom: 0.5rem; opacity: 0.9;">Tracking Number</p>
+                            <p
+                                style="font-size: 1.1rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
+                                <span id="tracking-number">{{ order.tracking_number }}</span>
+                                <button onclick="copyTracking()"
+                                    style="background: rgba(255,255,255,0.2); border: none; padding: 0.25rem 0.5rem; border-radius: 4px; cursor: pointer; color: white;"
+                                    title="Copy tracking number">
+                                    📋
+                                </button>
+                            </p>
+                        </div>
+                    </div>
+                    {% if order.estimated_delivery_date %}
+                    <p style="margin-top: 1rem; margin-bottom: 0;">
+                        <strong>📅 Expected Delivery:</strong> {{ order.estimated_delivery_date|date:"F d, Y" }}
+                    </p>
+                    {% endif %}
+                    {% if order.shipped_date %}
+                    <p style="margin: 0.5rem 0 0 0; opacity: 0.9; font-size: 0.875rem;">
+                        Shipped on: {{ order.shipped_date|date:"F d, Y h:i A" }}
+                    </p>
+                    {% endif %}
                 </div>
                 {% endif %}
+
+                <!-- Action Buttons -->
+                <div style="margin-top: 2rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+                    {% if user == order.seller and order.status == 'paid' %}
+                    <a href="{% url 'update_order_tracking' order.pk %}" class="btn btn-primary">
+                        📦 Add Tracking Info
+                    </a>
+                    {% elif user == order.seller and order.tracking_number %}
+                    <a href="{% url 'update_order_tracking' order.pk %}" class="btn btn-secondary">
+                        ✏️ Update Tracking
+                    </a>
+                    {% endif %}
+
+                    {% if user == order.buyer and order.status in "pending_payment,paid" %}
+                    <a href="{% url 'cancel_order' order.pk %}" class="btn btn-danger">Cancel Order</a>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    function copyTracking() {
+        const trackingNumber = document.getElementById('tracking-number').textContent;
+        navigator.clipboard.writeText(trackingNumber).then(() => {
+            if (window.toast) {
+                toast.show('Tracking number copied!', 'success', 2000);
+            } else {
+                alert('Tracking number copied: ' + trackingNumber);
+            }
+        }).catch(() => {
+            alert('Failed to copy tracking number');
+        });
+    }
+</script>
 {% endblock %}

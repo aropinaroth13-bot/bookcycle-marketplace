@@ -129,6 +129,28 @@ class Order(models.Model):
     payment_id = models.CharField(max_length=255, blank=True)
     payment_gateway = models.CharField(max_length=20, default='stripe')  # stripe or razorpay
     shipping_address = models.TextField()
+    
+    # Delivery Tracking Fields
+    tracking_number = models.CharField(max_length=100, blank=True, help_text="Courier tracking number")
+    courier_service = models.CharField(
+        max_length=50,
+        blank=True,
+        choices=[
+            ('india_post', 'India Post'),
+            ('blue_dart', 'Blue Dart'),
+            ('dtdc', 'DTDC'),
+            ('fedex', 'FedEx'),
+            ('dhl', 'DHL'),
+            ('delhivery', 'Delhivery'),
+            ('ekart', 'Ekart'),
+            ('other', 'Other'),
+        ],
+        help_text="Courier/Logistics service"
+    )
+    estimated_delivery_date = models.DateField(null=True, blank=True, help_text="Expected delivery date")
+    shipped_date = models.DateTimeField(null=True, blank=True, help_text="Date when order was shipped")
+    delivered_date = models.DateTimeField(null=True, blank=True, help_text="Date when order was delivered")
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -145,22 +167,37 @@ class Order(models.Model):
         self.payment_id = payment_id
         self.save()
     
-    def mark_as_shipped(self):
-        """Mark order as shipped"""
-        self.status = 'shipped'
-        self.save()
-    
-    def mark_as_completed(self):
-        """Mark order as completed"""
-        self.status = 'completed'
-        self.save()
-    
     def cancel_order(self):
         """Cancel the order"""
         self.status = 'cancelled'
+        self.payment_status = 'refunded'  # Trigger refund process
         # Make book available again
         self.book.status = 'available'
         self.book.save()
+        self.save()
+    
+    def update_tracking(self, tracking_number, courier_service, estimated_delivery_date=None):
+        """Update tracking information and mark as shipped"""
+        from django.utils import timezone
+        
+        self.tracking_number = tracking_number
+        self.courier_service = courier_service
+        if estimated_delivery_date:
+            self.estimated_delivery_date = estimated_delivery_date
+        
+        # Auto-update status to shipped if not already
+        if self.status == 'paid':
+            self.status = 'shipped'
+            self.shipped_date = timezone.now()
+        
+        self.save()
+    
+    def mark_as_delivered(self):
+        """Mark order as delivered"""
+        from django.utils import timezone
+        
+        self.status = 'completed'
+        self.delivered_date = timezone.now()
         self.save()
     
     def process_refund(self):

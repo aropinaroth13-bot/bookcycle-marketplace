@@ -34,6 +34,7 @@ urlpatterns = [
     path('my-sales/', views.my_sales, name='my_sales'),
     path('orders/<int:pk>/', views.order_detail, name='order_detail'),
     path('orders/<int:pk>/cancel/', views.cancel_order, name='cancel_order'),
+    path('orders/<int:pk>/update-tracking/', views.update_order_tracking, name='update_order_tracking'),
     
     # Advanced Features
     path('analytics/', advanced_views.analytics_dashboard, name='analytics_dashboard'),

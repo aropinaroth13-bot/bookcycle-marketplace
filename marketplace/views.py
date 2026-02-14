@@ -423,7 +423,50 @@ def cancel_order(request, pk):
             messages.error(request, 'This order cannot be cancelled.')
         return redirect('my_orders')
     
-    return render(request, 'marketplace/cancel_order.html', {'order': order})
+    return render(request, 'marketplace/cancel_order_confirm.html', {'order': order})
+
+
+@login_required
+def update_order_tracking(request, pk):
+    """Update tracking information for an order (seller only)"""
+    order = get_object_or_404(Order, pk=pk, seller=request.user)
+    
+    if request.method == 'POST':
+        from .tracking_forms import TrackingUpdateForm
+        
+        form = TrackingUpdateForm(request.POST)
+        if form.is_valid():
+            tracking_number = form.cleaned_data['tracking_number']
+            courier_service = form.cleaned_data['courier_service']
+            estimated_delivery_date = form.cleaned_data.get('estimated_delivery_date')
+            
+            # Update tracking
+            order.update_tracking(tracking_number, courier_service, estimated_delivery_date)
+            
+            # Send email to buyer
+            try:
+                from .email_utils import send_tracking_update_email
+                send_tracking_update_email(order)
+            except Exception as e:
+                print(f"Error sending tracking email: {e}")
+            
+            messages.success(request, 'Tracking information updated successfully!')
+            return redirect('order_detail', pk=order.id)
+        else:
+            messages.error(request, 'Please correct the errors in the form.')
+    else:
+        from .tracking_forms import TrackingUpdateForm
+        form = TrackingUpdateForm(initial={
+            'tracking_number': order.tracking_number,
+            'courier_service': order.courier_service,
+            'estimated_delivery_date': order.estimated_delivery_date,
+        })
+    
+    context = {
+        'order': order,
+        'form': form
+    }
+    return render(request, 'marketplace/update_tracking.html', context)
 
 
 # Payment Views
