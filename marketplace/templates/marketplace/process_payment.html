@@ -28,6 +28,40 @@
             "name": "BOOKCYCLE",
             "description": "{{ description }}",
             "order_id": "{{ razorpay_order_id }}",
+            "config": {
+                "display": {
+                    "blocks": {
+                        "upi": {
+                            "name": "Pay using UPI",
+                            "instruments": [
+                                {
+                                    "method": "upi"
+                                }
+                            ]
+                        },
+                        "card": {
+                            "name": "Cards",
+                            "instruments": [
+                                {
+                                    "method": "card"
+                                }
+                            ]
+                        },
+                        "netbanking": {
+                            "name": "Netbanking",
+                            "instruments": [
+                                {
+                                    "method": "netbanking"
+                                }
+                            ]
+                        }
+                    },
+                    "sequence": ["block.upi", "block.card", "block.netbanking"],
+                    "preferences": {
+                        "show_default_blocks": true
+                    }
+                }
+            },
             "handler": function (response) {
                 // Payment successful
                 var form = document.createElement('form');
