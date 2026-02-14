@@ -44,6 +44,7 @@ urlpatterns = [
     path('payment/process/', views.process_payment, name='process_payment'),
     path('payment/success/', views.payment_success, name='payment_success'),
     path('payment/cancelled/', views.payment_cancelled, name='payment_cancelled'),
+    path('payment/razorpay/callback/', views.razorpay_callback, name='razorpay_callback'),
     path('webhooks/stripe/', views.stripe_webhook, name='stripe_webhook'),
     
     # Reviews

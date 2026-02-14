@@ -429,7 +429,7 @@ def cancel_order(request, pk):
 # Payment Views
 @login_required
 def process_payment(request):
-    """Create Stripe checkout session for orders"""
+    """Create Razorpay order for payment"""
     order_ids = request.session.get('pending_order_ids', [])
     
     if not order_ids:
@@ -442,20 +442,25 @@ def process_payment(request):
         messages.error(request, 'Orders not found.')
         return redirect('my_orders')
     
-    # For simplicity, process first order (in production, combine into single payment)
+    # For simplicity, process first order
     order = orders.first()
     
-    # Create Stripe checkout session
-    success_url = request.build_absolute_uri(reverse('payment_success')) + '?session_id={CHECKOUT_SESSION_ID}'
-    cancel_url = request.build_absolute_uri(reverse('payment_cancelled'))
+    # Import here to avoid circular imports
+    from .payment_utils import create_razorpay_order
+    from django.conf import settings
     
-    session = create_stripe_checkout_session(order, success_url, cancel_url)
+    # Create Razorpay order
+    razorpay_order = create_razorpay_order(order)
     
-    if session:
-        # Clear pending orders from session
-        del request.session['pending_order_ids']
-        # Redirect to Stripe Checkout
-        return redirect(session.url)
+    if razorpay_order:
+        context = {
+            'razorpay_key_id': settings.RAZORPAY_KEY_ID,
+            'razorpay_order_id': razorpay_order['id'],
+            'amount': order.total_price,
+            'amount_in_paise': int(order.total_price * 100),
+            'description': f'{order.book.title} by {order.book.author}',
+        }
+        return render(request, 'marketplace/process_payment.html', context)
     else:
         messages.error(request, 'Payment processing failed. Please try again.')
         return redirect('my_orders')
@@ -470,6 +475,45 @@ def payment_success(request):
         'session_id': session_id,
     }
     return render(request, 'marketplace/payment_success.html', context)
+
+
+@login_required
+@csrf_exempt
+def razorpay_callback(request):
+    """Handle Razorpay payment callback"""
+    if request.method == 'POST':
+        from .payment_utils import verify_razorpay_payment, process_razorpay_payment
+        
+        razorpay_payment_id = request.POST.get('razorpay_payment_id')
+        razorpay_order_id = request.POST.get('razorpay_order_id')
+        razorpay_signature = request.POST.get('razorpay_signature')
+        
+        # Verify payment signature
+        is_valid = verify_razorpay_payment(
+            razorpay_order_id,
+            razorpay_payment_id,
+            razorpay_signature
+        )
+        
+        if is_valid:
+            # Process the payment
+            order = process_razorpay_payment(razorpay_payment_id, razorpay_order_id)
+            
+            if order:
+                # Clear pending orders from session
+                if 'pending_order_ids' in request.session:
+                    del request.session['pending_order_ids']
+                
+                messages.success(request, f'Payment successful! Order #{order.id} confirmed.')
+                return redirect(reverse('payment_success') + f'?session_id={razorpay_payment_id}')
+            else:
+                messages.error(request, 'Error processing payment. Please contact support.')
+                return redirect('my_orders')
+        else:
+            messages.error(request, 'Payment verification failed. Please contact support.')
+            return redirect('payment_cancelled')
+    
+    return redirect('home')
 
 
 @login_required

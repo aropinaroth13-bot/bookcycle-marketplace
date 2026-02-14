@@ -1,12 +1,19 @@
 """
-Payment utilities for Stripe integration
+Payment utilities for Stripe and Razorpay integration
 """
 import stripe
+import razorpay
 from django.conf import settings
 from decimal import Decimal
 
 # Initialize Stripe
-stripe.api_key = settings.STRIPE_SECRET_KEY
+stripe.api_key = getattr(settings, 'STRIPE_SECRET_KEY', '')
+
+# Initialize Razorpay
+razorpay_client = razorpay.Client(auth=(
+    getattr(settings, 'RAZORPAY_KEY_ID', ''),
+    getattr(settings, 'RAZORPAY_KEY_SECRET', '')
+))
 
 
 def create_stripe_checkout_session(order, success_url, cancel_url):
@@ -54,6 +61,123 @@ def create_stripe_checkout_session(order, success_url, cancel_url):
         
     except Exception as e:
         print(f"Error creating Stripe session: {e}")
+        return None
+
+
+def create_razorpay_order(order):
+    """
+    Create a Razorpay order
+    
+    Args:
+        order: Order instance
+        
+    Returns:
+        Razorpay order dict
+    """
+    try:
+        # Convert price to paise (Razorpay uses smallest currency unit)
+        amount_in_paise = int(order.total_price * 100)
+        
+        razorpay_order = razorpay_client.order.create({
+            "amount": amount_in_paise,
+            "currency": "INR",
+            "receipt": f"order_{order.id}",
+            "notes": {
+                "order_id": str(order.id),
+                "buyer_id": str(order.buyer.id),
+                "seller_id": str(order.seller.id),
+                "book_title": order.book.title,
+            }
+        })
+        
+        return razorpay_order
+        
+    except Exception as e:
+        print(f"Error creating Razorpay order: {e}")
+        return None
+
+
+def verify_razorpay_payment(razorpay_order_id, razorpay_payment_id, razorpay_signature):
+    """
+    Verify Razorpay payment signature
+    
+    Args:
+        razorpay_order_id: Razorpay order ID
+        razorpay_payment_id: Razorpay payment ID
+        razorpay_signature: Razorpay signature
+        
+    Returns:
+        True if valid, False otherwise
+    """
+    try:
+        razorpay_client.utility.verify_payment_signature({
+            'razorpay_order_id': razorpay_order_id,
+            'razorpay_payment_id': razorpay_payment_id,
+            'razorpay_signature': razorpay_signature
+        })
+        return True
+    except:
+        return False
+
+
+def process_razorpay_payment(razorpay_payment_id, razorpay_order_id):
+    """
+    Process a successful Razorpay payment
+    
+    Args:
+        razorpay_payment_id: Razorpay payment ID
+        razorpay_order_id: Razorpay order ID
+        
+    Returns:
+        Order instance if successful, None otherwise
+    """
+    from .models import Order, Payment
+    from .email_utils import send_order_confirmation_email, send_new_order_notification_email
+    
+    try:
+        # Get payment details from Razorpay
+        payment_details = razorpay_client.payment.fetch(razorpay_payment_id)
+        order_details = razorpay_client.order.fetch(razorpay_order_id)
+        
+        order_id = order_details['notes'].get('order_id')
+        order = Order.objects.get(id=order_id)
+        
+        # Update order status
+        order.mark_as_paid(razorpay_payment_id)
+        order.payment_gateway = 'razorpay'
+        order.save()
+        
+        # Create payment record
+        Payment.objects.create(
+            order=order,
+            payment_id=razorpay_payment_id,
+            payment_method=payment_details.get('method', 'unknown'),
+            amount=Decimal(payment_details['amount']) / 100,  # Convert from paise
+            status='completed',
+            payment_gateway='razorpay',
+            metadata={
+                'razorpay_order_id': razorpay_order_id,
+                'razorpay_payment_id': razorpay_payment_id,
+                'email': payment_details.get('email'),
+                'contact': payment_details.get('contact'),
+            }
+        )
+        
+        # Mark book as sold
+        order.book.status = 'sold'
+        order.book.save()
+        
+        # Send email notifications
+        send_order_confirmation_email(order)
+        send_new_order_notification_email(order)
+        
+        return order
+        
+    except Order.DoesNotExist:
+        print(f"Order not found for razorpay order {razorpay_order_id}")
+        return None
+    except Exception as e:
+        print(f"Error processing Razorpay payment: {e}")
         return None
 
 

@@ -1,0 +1,112 @@
+{% extends 'marketplace/base.html' %}
+
+{% block title %}Processing Payment - BOOKCYCLE{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="card" style="max-width: 600px; margin: 0 auto;">
+        <div class="card-body text-center" style="padding: 3rem;">
+            <div style="font-size: 4rem; margin-bottom: 1rem;">💳</div>
+            <h2>Processing Payment...</h2>
+            <p style="color: var(--gray); margin: 1.5rem 0;">Please complete the payment in the Razorpay popup window.
+            </p>
+
+            <div class="spinner" style="margin: 2rem auto;"></div>
+
+            <button id="rzp-button" class="btn btn-primary" style="margin-top: 2rem;">Pay ₹{{ amount }}</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var options = {
+            "key": "{{ razorpay_key_id }}",
+            "amount": "{{ amount_in_paise }}",
+            "currency": "INR",
+            "name": "BOOKCYCLE",
+            "description": "{{ description }}",
+            "order_id": "{{ razorpay_order_id }}",
+            "handler": function (response) {
+                // Payment successful
+                var form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '{% url "razorpay_callback" %}';
+
+                var csrf = document.createElement('input');
+                csrf.type = 'hidden';
+                csrf.name = 'csrfmiddlewaretoken';
+                csrf.value = '{{ csrf_token }}';
+                form.appendChild(csrf);
+
+                var payment_id = document.createElement('input');
+                payment_id.type = 'hidden';
+                payment_id.name = 'razorpay_payment_id';
+                payment_id.value = response.razorpay_payment_id;
+                form.appendChild(payment_id);
+
+                var order_id = document.createElement('input');
+                order_id.type = 'hidden';
+                order_id.name = 'razorpay_order_id';
+                order_id.value = response.razorpay_order_id;
+                form.appendChild(order_id);
+
+                var signature = document.createElement('input');
+                signature.type = 'hidden';
+                signature.name = 'razorpay_signature';
+                signature.value = response.razorpay_signature;
+                form.appendChild(signature);
+
+                document.body.appendChild(form);
+                form.submit();
+            },
+            "prefill": {
+                "name": "{{ user.get_full_name }}",
+                "email": "{{ user.email }}",
+                "contact": "{{ user.userprofile.phone_number }}"
+            },
+            "theme": {
+                "color": "#667eea"
+            }
+        };
+
+        var rzp = new Razorpay(options);
+
+        // Auto-open popup
+        rzp.open();
+
+        // Also allow manual trigger
+        document.getElementById('rzp-button').onclick = function (e) {
+            e.preventDefault();
+            rzp.open();
+        }
+
+        rzp.on('payment.failed', function (response) {
+            alert('Payment failed: ' + response.error.description);
+            window.location.href = '{% url "payment_cancelled" %}';
+        });
+    });
+</script>
+
+<style>
+    .spinner {
+        border: 4px solid var(--border-color);
+        border-top: 4px solid var(--primary-color);
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+</style>
+{% endblock %}
