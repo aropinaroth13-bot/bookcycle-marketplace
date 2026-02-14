@@ -45,10 +45,12 @@ class CartItemAdmin(admin.ModelAdmin):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ['id', 'buyer', 'seller', 'book', 'total_price', 'status', 'payment_status', 'created_at']
-    list_filter = ['status', 'payment_status', 'payment_gateway', 'created_at']
-    search_fields = ['buyer__username', 'seller__username', 'book__title', 'payment_id']
-    readonly_fields = ['created_at', 'updated_at']
+    list_display = ['id', 'buyer', 'seller', 'book', 'total_price', 'status', 'payment_status', 'tracking_status', 'created_at']
+    list_filter = ['status', 'payment_status', 'payment_gateway', 'courier_service', 'created_at', 'shipped_date']
+    search_fields = ['buyer__username', 'seller__username', 'book__title', 'payment_id', 'tracking_number']
+    readonly_fields = ['created_at', 'updated_at', 'shipped_date', 'delivered_date']
+    list_per_page = 50
+    date_hierarchy = 'created_at'
     
     fieldsets = (
         ('Order Details', {
@@ -60,8 +62,13 @@ class OrderAdmin(admin.ModelAdmin):
         ('Payment', {
             'fields': ('payment_id', 'payment_gateway')
         }),
-        ('Shipping', {
+        ('Shipping Address', {
             'fields': ('shipping_address',)
+        }),
+        ('📦 Tracking Information', {
+            'fields': ('tracking_number', 'courier_service', 'estimated_delivery_date', 'shipped_date', 'delivered_date'),
+            'classes': ('collapse',),
+            'description': 'Delivery tracking details'
         }),
         ('Timestamps', {
             'fields': ('created_at', 'updated_at'),
@@ -69,15 +76,61 @@ class OrderAdmin(admin.ModelAdmin):
         }),
     )
     
-    actions = ['mark_as_shipped', 'mark_as_completed']
+    actions = ['mark_as_shipped', 'mark_as_completed', 'mark_as_delivered', 'export_as_csv']
+    
+    def tracking_status(self, obj):
+        """Display tracking status in list"""
+        if obj.tracking_number:
+            return f"✅ {obj.get_courier_service_display()}"
+        return "❌ No tracking"
+    tracking_status.short_description = "Tracking"
     
     def mark_as_shipped(self, request, queryset):
-        queryset.update(status='shipped')
+        updated = queryset.update(status='shipped')
+        self.message_user(request, f'{updated} order(s) marked as shipped.')
     mark_as_shipped.short_description = "Mark selected orders as shipped"
     
     def mark_as_completed(self, request, queryset):
-        queryset.update(status='completed')
+        updated = queryset.update(status='completed')
+        self.message_user(request, f'{updated} order(s) marked as completed.')
     mark_as_completed.short_description = "Mark selected orders as completed"
+    
+    def mark_as_delivered(self, request, queryset):
+        from django.utils import timezone
+        for order in queryset:
+            order.mark_as_delivered()
+        self.message_user(request, f'{queryset.count()} order(s) marked as delivered.')
+    mark_as_delivered.short_description = "Mark selected orders as delivered"
+    
+    def export_as_csv(self, request, queryset):
+        """Export selected orders as CSV"""
+        import csv
+        from django.http import HttpResponse
+        
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="orders.csv"'
+        
+        writer = csv.writer(response)
+        writer.writerow(['Order ID', 'Buyer', 'Seller', 'Book', 'Price', 'Status', 'Payment Status', 
+                        'Tracking Number', 'Courier', 'Created', 'Shipped'])
+        
+        for order in queryset:
+            writer.writerow([
+                order.id,
+                order.buyer.username,
+                order.seller.username,
+                order.book.title,
+                order.total_price,
+                order.get_status_display(),
+                order.get_payment_status_display(),
+                order.tracking_number or 'N/A',
+                order.get_courier_service_display() if order.courier_service else 'N/A',
+                order.created_at.strftime('%Y-%m-%d %H:%M'),
+                order.shipped_date.strftime('%Y-%m-%d %H:%M') if order.shipped_date else 'N/A'
+            ])
+        
+        return response
+    export_as_csv.short_description = "Export selected orders as CSV"
 
 
 @admin.register(Payment)
