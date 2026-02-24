@@ -31,6 +31,10 @@
                 <li><a href="{% url 'inbox' %}">💬 Messages</a></li>
                 <li><a href="{% url 'my_listings' %}">My Listings</a></li>
                 <li><a href="{% url 'my_orders' %}">My Orders</a></li>
+                {% if user.is_staff %}
+                <li><a href="{% url 'admin_dashboard' %}" style="color: var(--warning-color); font-weight: bold;">🛡️
+                        Admin</a></li>
+                {% endif %}
                 <li><a href="{% url 'profile' %}">{{ user.username }}</a></li>
                 <li><a href="{% url 'logout' %}" class="btn btn-sm btn-outline">Logout</a></li>
                 {% else %}

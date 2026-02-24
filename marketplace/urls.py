@@ -2,6 +2,7 @@ from django.urls import path
 from . import views
 from . import advanced_views
 from . import views_admin
+from . import views_custom_admin
 
 urlpatterns = [
     # Home
@@ -61,6 +62,13 @@ urlpatterns = [
     path('inbox/', views.inbox, name='inbox'),
     path('conversation/<int:pk>/', views.conversation_detail, name='conversation_detail'),
     path('conversation/start/<int:pk>/', views.start_conversation, name='start_conversation'),
+    
+    # Custom Admin Panel
+    path('admin-panel/', views_custom_admin.admin_dashboard, name='admin_dashboard'),
+    path('admin-panel/users/', views_custom_admin.admin_user_list, name='admin_user_list'),
+    path('admin-panel/users/<int:user_id>/toggle/', views_custom_admin.admin_toggle_user_status, name='admin_toggle_user_status'),
+    path('admin-panel/books/', views_custom_admin.admin_book_list, name='admin_book_list'),
+    path('admin-panel/orders/', views_custom_admin.admin_order_list, name='admin_order_list'),
     
     # Admin utilities
     path('initialize/', views_admin.initialize_database, name='initialize_database'),

@@ -1,0 +1,92 @@
+{% extends 'marketplace/base.html' %}
+
+{% block content %}
+<div class="admin-wrapper py-4">
+    <div class="container">
+        <div class="grid" style="grid-template-columns: 250px 1fr; gap: 2rem;">
+            <!-- Admin Sidebar -->
+            <aside class="admin-sidebar">
+                <div class="card p-0">
+                    <div class="card-header bg-primary text-white p-3">
+                        <h4 class="mb-0">Admin Menu</h4>
+                    </div>
+                    <ul class="admin-nav list-unstyled mb-0">
+                        <li>
+                            <a href="{% url 'admin_dashboard' %}" class="p-3 d-block {% if active_tab == 'dashboard' %}active-link{% endif %}">
+                                📊 Dashboard
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'admin_user_list' %}" class="p-3 d-block {% if active_tab == 'users' %}active-link{% endif %}">
+                                👥 Manage Users
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'admin_book_list' %}" class="p-3 d-block {% if active_tab == 'books' %}active-link{% endif %}">
+                                📚 Manage Books
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'admin_order_list' %}" class="p-3 d-block {% if active_tab == 'orders' %}active-link{% endif %}">
+                                📦 Manage Orders
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'analytics_dashboard' %}" class="p-3 d-block">
+                                📈 Seller Analytics
+                            </a>
+                        </li>
+                        <hr class="m-0">
+                        <li>
+                            <a href="/admin/" class="p-3 d-block text-muted">
+                                ⚙️ Django Admin
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </aside>
+
+            <!-- Admin Content -->
+            <main class="admin-main">
+                {% block admin_content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+</div>
+
+<style>
+    .admin-wrapper {
+        min-height: 80vh;
+        background-color: var(--background-alt);
+    }
+    .admin-nav li {
+        border-bottom: 1px solid var(--border-color);
+    }
+    .admin-nav li:last-child {
+        border-bottom: none;
+    }
+    .admin-nav a {
+        color: var(--foreground);
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+    .admin-nav a:hover {
+        background-color: var(--primary-light);
+        color: var(--primary-color);
+    }
+    .admin-nav a.active-link {
+        background-color: var(--primary-color);
+        color: white;
+    }
+    .admin-nav hr {
+        border: none;
+        border-top: 1px solid var(--border-color);
+    }
+    
+    @media (max-width: 992px) {
+        .grid {
+            grid-template-columns: 1fr !important;
+        }
+    }
+</style>
+{% endblock %}
