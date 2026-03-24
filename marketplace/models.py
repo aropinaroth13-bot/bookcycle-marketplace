@@ -6,14 +6,14 @@ from decimal import Decimal
 
 class UserProfile(models.Model):
     """Extended user profile with additional marketplace details"""
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='userprofile')
     phone_number = models.CharField(max_length=15, blank=True)
     address = models.TextField(blank=True)
     profile_picture = models.ImageField(upload_to='profiles/', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
-        return f"{self.user.username}'s Profile"
+        return f"{self.user.username}"
 
 
 class Book(models.Model):
@@ -53,6 +53,7 @@ class Book(models.Model):
     isbn = models.CharField(max_length=13, blank=True)
     publisher = models.CharField(max_length=255, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='available')
+    quantity = models.PositiveIntegerField(default=1, validators=[MinValueValidator(0)])
     seller = models.ForeignKey(User, on_delete=models.CASCADE, related_name='books')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -80,7 +81,7 @@ class Book(models.Model):
     
     def is_available(self):
         """Check if book is available for purchase"""
-        return self.status == 'available'
+        return self.status == 'available' and self.quantity > 0
 
 
 class CartItem(models.Model):
@@ -112,6 +113,17 @@ class Order(models.Model):
         ('cancelled', 'Cancelled'),
     ]
     
+    SHIPPING_STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('processing', 'Processing'),
+        ('packed', 'Packed & Ready'),
+        ('shipped', 'Shipped'),
+        ('in_transit', 'In Transit'),
+        ('out_for_delivery', 'Out for Delivery'),
+        ('delivered', 'Delivered'),
+        ('returned', 'Returned'),
+    ]
+    
     PAYMENT_STATUS_CHOICES = [
         ('pending', 'Pending'),
         ('completed', 'Completed'),
@@ -129,6 +141,12 @@ class Order(models.Model):
     payment_id = models.CharField(max_length=255, blank=True)
     payment_gateway = models.CharField(max_length=20, default='stripe')  # stripe or razorpay
     shipping_address = models.TextField()
+    shipping_status = models.CharField(
+        max_length=20,
+        choices=SHIPPING_STATUS_CHOICES,
+        default='pending',
+        help_text="Current shipping status updated by the seller"
+    )
     
     # Delivery Tracking Fields
     tracking_number = models.CharField(max_length=100, blank=True, help_text="Courier tracking number")
@@ -165,6 +183,7 @@ class Order(models.Model):
         self.status = 'paid'
         self.payment_status = 'completed'
         self.payment_id = payment_id
+        self.shipping_status = 'processing'
         self.save()
     
     def cancel_order(self):
@@ -176,19 +195,26 @@ class Order(models.Model):
         self.book.save()
         self.save()
     
-    def update_tracking(self, tracking_number, courier_service, estimated_delivery_date=None):
+    def update_tracking(self, tracking_number, courier_service, shipping_status, estimated_delivery_date=None):
         """Update tracking information and mark as shipped"""
         from django.utils import timezone
         
         self.tracking_number = tracking_number
         self.courier_service = courier_service
+        self.shipping_status = shipping_status
         if estimated_delivery_date:
             self.estimated_delivery_date = estimated_delivery_date
         
-        # Auto-update status to shipped if not already
-        if self.status == 'paid':
-            self.status = 'shipped'
-            self.shipped_date = timezone.now()
+        # Auto-update status based on shipping_status
+        if shipping_status == 'shipped':
+            if self.status != 'shipped' and self.status != 'completed':
+                self.status = 'shipped'
+                self.shipped_date = timezone.now()
+        elif shipping_status == 'delivered':
+            self.status = 'completed'
+            self.delivered_date = timezone.now()
+        elif shipping_status == 'pending' and self.status == 'shipped':
+            self.status = 'paid' # Revert if shipping status changed back
         
         self.save()
     
@@ -315,5 +341,5 @@ class Message(models.Model):
         ordering = ['created_at']
     
     def __str__(self):
-        return f"Message from {self.sender.username} at {self.created_at}"
+        return f"Message from {self.sender.username} in conversation {self.conversation.id}"
 

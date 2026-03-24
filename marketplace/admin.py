@@ -11,7 +11,7 @@ class UserProfileAdmin(admin.ModelAdmin):
 
 @admin.register(Book)
 class BookAdmin(admin.ModelAdmin):
-    list_display = ['title', 'author', 'price', 'condition', 'category', 'status', 'seller', 'created_at']
+    list_display = ['title', 'author', 'price', 'quantity', 'condition', 'category', 'status', 'seller', 'created_at']
     list_filter = ['status', 'condition', 'category', 'created_at']
     search_fields = ['title', 'author', 'isbn', 'seller__username']
     readonly_fields = ['created_at', 'updated_at']
@@ -21,7 +21,7 @@ class BookAdmin(admin.ModelAdmin):
             'fields': ('title', 'author', 'description', 'isbn', 'publisher')
         }),
         ('Pricing & Condition', {
-            'fields': ('price', 'condition', 'category', 'status')
+            'fields': ('price', 'quantity', 'condition', 'category', 'status')
         }),
         ('Seller', {
             'fields': ('seller',)

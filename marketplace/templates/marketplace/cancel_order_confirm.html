@@ -1,0 +1,53 @@
+{% extends 'marketplace/base.html' %}
+
+{% block title %}Cancel Order #{{ order.id }} - BOOKCYCLE{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    <h3 class="card-title mb-0">Cancel Order #{{ order.id }}</h3>
+                </div>
+                <div class="card-body">
+                    <p class="lead">Are you sure you want to cancel your order for <strong>{{ order.book.title }}</strong>?</p>
+                    
+                    <div class="alert alert-warning">
+                        <strong>Note:</strong> Once cancelled, this action cannot be undone. 
+                        {% if order.payment_status == 'paid' %}
+                            Your payment will be refunded according to our return policy.
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h5>Order Details:</h5>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Book
+                                <span>{{ order.book.title }} by {{ order.book.author }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Price
+                                <span>₹{{ order.total_price }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Current Status
+                                <span class="badge bg-primary rounded-pill">{{ order.get_status_display }}</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <form method="post" action="{% url 'cancel_order' order.id %}">
+                        {% csrf_token %}
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'my_orders' %}" class="btn btn-secondary me-md-2">Go Back</a>
+                            <button type="submit" class="btn btn-danger">Yes, Cancel My Order</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

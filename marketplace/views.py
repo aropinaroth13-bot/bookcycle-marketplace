@@ -34,19 +34,50 @@ def register(request):
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            login(request, user)
+            user = form.save(commit=False)
+            user.is_active = False # user must confirm email
+            user.save()
             
-            # Send welcome email
-            from .email_utils import send_welcome_email
-            send_welcome_email(user)
+            # Send activation email
+            from .email_utils import send_activation_email
+            domain = request.get_host()
+            send_activation_email(user, domain)
+
             
-            messages.success(request, f'Welcome to BOOKCYCLE, {user.username}! Check your email for a welcome message.')
-            return redirect('home')
+            messages.success(request, f'Welcome {user.username}! Please check your email and click the link to activate your account. You will not be able to login without activation.')
+            return redirect('login')
     else:
         form = UserRegistrationForm()
     
     return render(request, 'marketplace/register.html', {'form': form})
+
+def activate(request, uidb64, token):
+    """Activate user account from email confirmation link"""
+    from django.utils.http import urlsafe_base64_decode
+    from django.utils.encoding import force_str
+    from django.contrib.auth import get_user_model
+    from .tokens import account_activation_token
+    
+    User = get_user_model()
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except(TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+        
+    if user is not None and account_activation_token.check_token(user, token):
+        user.is_active = True
+        user.save()
+        
+        # Send welcome email
+        from .email_utils import send_welcome_email
+        send_welcome_email(user)
+        
+        messages.success(request, 'Thank you for your email confirmation. Now you can login to your account.')
+        return redirect('login')
+    else:
+        messages.error(request, 'Activation link is invalid or expired.')
+        return redirect('home')
 
 
 def user_login(request):
@@ -438,10 +469,11 @@ def update_order_tracking(request, pk):
         if form.is_valid():
             tracking_number = form.cleaned_data['tracking_number']
             courier_service = form.cleaned_data['courier_service']
+            shipping_status = form.cleaned_data['shipping_status']
             estimated_delivery_date = form.cleaned_data.get('estimated_delivery_date')
             
             # Update tracking
-            order.update_tracking(tracking_number, courier_service, estimated_delivery_date)
+            order.update_tracking(tracking_number, courier_service, shipping_status, estimated_delivery_date)
             
             # Send email to buyer
             try:
@@ -450,7 +482,7 @@ def update_order_tracking(request, pk):
             except Exception as e:
                 print(f"Error sending tracking email: {e}")
             
-            messages.success(request, 'Tracking information updated successfully!')
+            messages.success(request, f'Order status updated to "{order.get_shipping_status_display()}"!')
             return redirect('order_detail', pk=order.id)
         else:
             messages.error(request, 'Please correct the errors in the form.')
@@ -459,6 +491,7 @@ def update_order_tracking(request, pk):
         form = TrackingUpdateForm(initial={
             'tracking_number': order.tracking_number,
             'courier_service': order.courier_service,
+            'shipping_status': order.shipping_status,
             'estimated_delivery_date': order.estimated_delivery_date,
         })
     

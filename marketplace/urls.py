@@ -10,10 +10,12 @@ urlpatterns = [
     
     # Authentication
     path('register/', views.register, name='register'),
+    path('activate/<uidb64>/<token>/', views.activate, name='activate'),
     path('login/', views.user_login, name='login'),
     path('logout/', views.user_logout, name='logout'),
     path('profile/', views.profile, name='profile'),
     path('profile/edit/', views.edit_profile, name='edit_profile'),
+
     
     # Book Listings
     path('books/', views.browse_books, name='browse_books'),

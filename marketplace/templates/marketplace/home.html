@@ -39,6 +39,9 @@
                     <p class="card-text">
                         <span class="badge badge-primary">{{ book.get_condition_display }}</span>
                         <span class="badge badge-success">{{ book.get_category_display }}</span>
+                        {% if book.quantity == 0 %}
+                        <span class="badge badge-warning">Coming Soon</span>
+                        {% endif %}
                     </p>
                     <div class="card-price">₹{{ book.price }}</div>
                     <a href="{% url 'book_detail' book.pk %}" class="btn btn-primary" style="width: 100%;">View

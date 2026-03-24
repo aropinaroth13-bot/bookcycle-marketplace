@@ -66,7 +66,7 @@ class BookListingForm(forms.ModelForm):
     class Meta:
         model = Book
         fields = [
-            'title', 'author', 'description', 'price', 'condition', 
+            'title', 'author', 'description', 'price', 'quantity', 'condition', 
             'category', 'isbn', 'publisher', 'image1', 'image2', 
             'image3', 'image4', 'image5'
         ]

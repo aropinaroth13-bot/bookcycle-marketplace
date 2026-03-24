@@ -22,8 +22,13 @@ class TrackingUpdateForm(forms.Form):
             ('dhl', 'DHL'),
             ('delhivery', 'Delhivery'),
             ('ekart', 'Ekart'),
-            (' other', 'Other'),
+            ('other', 'Other'),
         ],
+        required=True,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    shipping_status = forms.ChoiceField(
+        choices=Order.SHIPPING_STATUS_CHOICES,
         required=True,
         widget=forms.Select(attrs={'class': 'form-control'})
     )

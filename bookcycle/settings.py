@@ -20,7 +20,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-h9e+2b%l0i3&_-h3bfalxf-zjgf7k70#3o7+xqeqb9ufr*7_fx'
+from decouple import config
+import dj_database_url
+
+SECRET_KEY = config('SECRET_KEY', default='django-insecure-h9e+2b%l0i3&_-h3bfalxf-zjgf7k70#3o7+xqeqb9ufr*7_fx')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 import os
@@ -78,10 +81,10 @@ WSGI_APPLICATION = 'bookcycle.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default=config('DATABASE_URL', default=f'sqlite:///{BASE_DIR}/db.sqlite3'),
+        conn_max_age=600
+    )
 }
 
 
@@ -132,49 +135,53 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Heroku Production Settings
+# Heroku & Render Production Settings
 import os
 import dj_database_url
 
-# Detect if running on Heroku
-if 'DYNO' in os.environ:
-    # Running on Heroku
-    DEBUG = False
+# Detect if running on Cloud (Heroku or Render)
+IS_PRODUCTION = 'DYNO' in os.environ or 'RENDER' in os.environ
+
+if IS_PRODUCTION:
+    # Set DEBUG to False in production
+    DEBUG = os.environ.get('DEBUG', 'False') == 'True'
     
-    # Use DATABASE_URL from Heroku
-    DATABASES['default'] = dj_database_url.config(conn_max_age=600, ssl_require=True)
-    
-    # Use REDIS_URL from Heroku
-    CACHES = {
-        'default': {
-            'BACKEND': 'django_redis.cache.RedisCache',
-            'LOCATION': os.environ.get('REDIS_URL'),
-            'OPTIONS': {
-                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-            }
-        }
-    }
-    
-    # WhiteNoise for static files
-    MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-    
-    # Security settings
-    SECURE_SSL_REDIRECT = True
+    # Secure settings (can be overridden by env vars)
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', 'True') == 'True'
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    SECURE_BROWSER_XSS_FILTER = True
-    SECURE_CONTENT_TYPE_NOSNIFF = True
     
-    # Get ALLOWED_HOSTS from environment
-    ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',')
+    # WhiteNoise for static files
+    if 'whitenoise' not in MIDDLEWARE[1]: # Basic check to avoid double injection
+        MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
     
-    # Email settings (optional, from environment)
+    # Database - Use DATABASE_URL from environment
+    DATABASES['default'] = dj_database_url.config(conn_max_age=600, ssl_require=True)
+    
+    # Redis Cache - if REDIS_URL exists
+    if 'REDIS_URL' in os.environ:
+        CACHES = {
+            'default': {
+                'BACKEND': 'django_redis.cache.RedisCache',
+                'LOCATION': os.environ.get('REDIS_URL'),
+                'OPTIONS': {
+                    'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+                }
+            }
+        }
+    
+    # ALLOWED_HOSTS from environment
+    if 'ALLOWED_HOSTS' in os.environ:
+        ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',')
+    
+    # Email settings from environment
     if 'EMAIL_HOST_USER' in os.environ:
         EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-        EMAIL_HOST = 'smtp.gmail.com'
-        EMAIL_PORT = 587
-        EMAIL_USE_TLS = True
+        EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
+        EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+        EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
         EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
         EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
         DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
@@ -185,12 +192,23 @@ LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
-# Email settings (for development - console backend)
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# Email settings
+if config('EMAIL_HOST_USER', default=''):
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
+    EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+    EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+    EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+    EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+    DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default=EMAIL_HOST_USER)
+else:
+    # Use console backend if no SMTP credentials are provided
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
 
 # Payment Gateway Settings (add to .env in production)
-STRIPE_PUBLIC_KEY = os.environ.get('STRIPE_PUBLIC_KEY', '')
-STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', '')
-RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID', '')
-RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET', '')
+STRIPE_PUBLIC_KEY = config('STRIPE_PUBLIC_KEY', default='')
+STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY', default='')
+RAZORPAY_KEY_ID = config('RAZORPAY_KEY_ID', default='')
+RAZORPAY_KEY_SECRET = config('RAZORPAY_KEY_SECRET', default='')
 
