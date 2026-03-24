@@ -30,7 +30,8 @@ import os
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 # Read ALLOWED_HOSTS from environment variable (for production)
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',') if os.environ.get('ALLOWED_HOSTS') else []
+_allowed = os.environ.get('ALLOWED_HOSTS', '')
+ALLOWED_HOSTS = [h.strip() for h in _allowed.split(',') if h.strip()] if _allowed else ['localhost', '127.0.0.1']
 
 
 # Application definition
@@ -158,7 +159,9 @@ if IS_PRODUCTION:
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
     
     # Database - Use DATABASE_URL from environment
-    DATABASES['default'] = dj_database_url.config(conn_max_age=600, ssl_require=True)
+    db_url = os.environ.get('DATABASE_URL', '')
+    ssl_require = db_url.startswith('postgres')
+    DATABASES['default'] = dj_database_url.config(conn_max_age=600, ssl_require=ssl_require)
     
     # Redis Cache - if REDIS_URL exists
     if 'REDIS_URL' in os.environ:
@@ -172,9 +175,16 @@ if IS_PRODUCTION:
             }
         }
     
-    # ALLOWED_HOSTS from environment
+    # ALLOWED_HOSTS from environment - always include onrender.com
     if 'ALLOWED_HOSTS' in os.environ:
-        ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',')
+        ALLOWED_HOSTS = [h.strip() for h in os.environ.get('ALLOWED_HOSTS', '').split(',') if h.strip()]
+    # Always add .onrender.com for Render deployments
+    if 'RENDER' in os.environ:
+        render_hostname = os.environ.get('RENDER_EXTERNAL_HOSTNAME', '')
+        if render_hostname and render_hostname not in ALLOWED_HOSTS:
+            ALLOWED_HOSTS.append(render_hostname)
+        if '.onrender.com' not in str(ALLOWED_HOSTS):
+            ALLOWED_HOSTS.append('bookcycle-marketplace.onrender.com')
     
     # Email settings from environment
     if 'EMAIL_HOST_USER' in os.environ:
