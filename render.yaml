@@ -35,16 +35,14 @@ services:
       - key: EMAIL_HOST_PASSWORD
         sync: false
 
+  - type: redis
+    name: bookcycle-redis
+    region: singapore
+    plan: free
+
 databases:
   - name: bookcycle-db
     databaseName: bookcycle
     user: bookcycle_user
     region: singapore
     plan: free
-
-# Optionally add Redis if you want caching
-# services:
-#   - type: redis
-#     name: bookcycle-redis
-#     region: singapore
-#     plan: free
