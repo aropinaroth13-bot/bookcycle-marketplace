@@ -22,10 +22,6 @@ services:
           name: bookcycle-db
           property: connectionString
 
-  - type: redis
-    name: bookcycle-redis
-    region: singapore
-    plan: free
 
 databases:
   - name: bookcycle-db
